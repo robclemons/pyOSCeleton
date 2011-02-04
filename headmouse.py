@@ -2,6 +2,7 @@
 
 from math import sqrt
 import time
+from Xlib import display
 from OSCeleton import OSCeleton
 
 class Coord:
@@ -44,16 +45,19 @@ class Coord:
         self.x = self.x / mag
         self.y = self.y / mag
         self.z = self.z / mag
-        
+
+MOVE_POINTER = 2        
         
 if __name__ == "__main__":
     server = OSCeleton(7110)
     count = 0
     prev_time = time.time()
     wanted = ['head', 'neck', 'l_shoulder', 'r_shoulder', 'torso']
+    xd = display.Display()
+    frame_count = 0
     while True:
         server.run()
-        if (time.time() - prev_time) > 3:
+        if server.frames > frame_count:
             if server.contains(wanted):
                 head = Coord(server.joints['head'])
                 neck = Coord(server.joints['neck'])
@@ -69,14 +73,18 @@ if __name__ == "__main__":
                 center_offset = 0.0025
                 if abs(hrs.x) + center_offset < abs(hls.x):
                     print "R"
+                    xd.warp_pointer(MOVE_POINTER,0)
                 elif abs(hls.x) + center_offset < abs(hrs.x):
                     print "L"
+                    xd.warp_pointer(-MOVE_POINTER,0)
                 else:
                     print "C"
                 if ht.z < 0.045:
                     print "D"
+                    xd.warp_pointer(0, MOVE_POINTER)
                 elif ht.z > 0.065:
                     print "U"
+                    xd.warp_pointer(0, -MOVE_POINTER)
                 else:
                     print "M"
                 print "distance between SHOULDER = %f" % sh_dist.magnitude()
@@ -84,6 +92,8 @@ if __name__ == "__main__":
                 print "HEAD - R_SHOULDER = " + str(head - r_shoulder)
                 print "HEAD - NECK = " + str(head - neck)
                 print "HEAD - TORSO = " + str(head - torso)
+                xd.flush()
                 count += 1
                 prev_time = time.time()
+                frame_count = server.frames
   
