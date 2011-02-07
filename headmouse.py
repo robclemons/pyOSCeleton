@@ -1,50 +1,9 @@
 #! /usr/bin/env python
 
-from math import sqrt
 import time
 from Xlib import display
-from OSCeleton import OSCeleton
+from OSCeleton import OSCeleton, Point
 
-class Coord:
-    '''Euclidean difference can be found with:
-        >>> joint_c = joint_a - joint_b
-        >>> joint_c.magnitude()
-    '''
-    def __init__(self, (x, y, z)):
-        self.x = x
-        self.y = y
-        self.z = z
-        
-    def __str__(self):
-        s = "(%f, %f, %f)" % (self.x, self.y, self.z)
-        return s
-        
-    def __eq__(self, other):
-        if self.x == other.x and self.y == other.y and self.z == other.z:
-            return True
-        else:
-            return False
-            
-    def __add__(self, other):
-        x = self.x + other.x
-        y = self.y + other.y
-        z = self.z + other.z
-        return Coord((x, y, z))
-        
-    def __sub__(self, other):
-        x = self.x - other.x
-        y = self.y - other.y
-        z = self.z - other.z
-        return Coord((x, y, z))
-        
-    def magnitude(self):
-        return sqrt(self.x ** 2 + self.y ** 2 + self.z ** 2)
-            
-    def normalize(self):
-        mag = self.magnitude()
-        self.x = self.x / mag
-        self.y = self.y / mag
-        self.z = self.z / mag
 
 MOVE_POINTER = 2        
         
@@ -59,11 +18,11 @@ if __name__ == "__main__":
         server.run()
         if server.frames > frame_count:
             if server.contains(wanted):
-                head = Coord(server.joints['head'])
-                neck = Coord(server.joints['neck'])
-                l_shoulder = Coord(server.joints['l_shoulder'])
-                r_shoulder = Coord(server.joints['r_shoulder'])
-                torso = Coord(server.joints['torso'])
+                head = server.joints['head']
+                neck = server.joints['neck']
+                l_shoulder = server.joints['l_shoulder']
+                r_shoulder = server.joints['r_shoulder']
+                torso = server.joints['torso']
                 sh_dist = l_shoulder - r_shoulder
                 print count
                 hls = head - l_shoulder
@@ -88,10 +47,10 @@ if __name__ == "__main__":
                 else:
                     print "M"
                 print "distance between SHOULDER = %f" % sh_dist.magnitude()
-                print "HEAD - L_SHOULDER = " + str(head - l_shoulder)
-                print "HEAD - R_SHOULDER = " + str(head - r_shoulder)
-                print "HEAD - NECK = " + str(head - neck)
-                print "HEAD - TORSO = " + str(head - torso)
+                print "HEAD - L_SHOULDER = " + str(hls)
+                print "HEAD - R_SHOULDER = " + str(hrs)
+                print "HEAD - NECK = " + str(hn)
+                print "HEAD - TORSO = " + str(ht)
                 xd.flush()
                 count += 1
                 prev_time = time.time()

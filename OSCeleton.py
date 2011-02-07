@@ -1,6 +1,49 @@
 #! /usr/bin/env python
 
+from math import sqrt
 import liblo
+
+class Point:
+    '''Euclidean difference can be found with:
+        >>> joint_c = joint_a - joint_b
+        >>> joint_c.magnitude()
+    '''
+    def __init__(self, (x, y, z)):
+        self.x = x
+        self.y = y
+        self.z = z
+        
+    def __str__(self):
+        s = "(%f, %f, %f)" % (self.x, self.y, self.z)
+        return s
+        
+    def __eq__(self, other):
+        if self.x == other.x and self.y == other.y and self.z == other.z:
+            return True
+        else:
+            return False
+            
+    def __add__(self, other):
+        x = self.x + other.x
+        y = self.y + other.y
+        z = self.z + other.z
+        return Point((x, y, z))
+        
+    def __sub__(self, other):
+        x = self.x - other.x
+        y = self.y - other.y
+        z = self.z - other.z
+        return Point((x, y, z))
+        
+    def magnitude(self):
+        return sqrt(self.x ** 2 + self.y ** 2 + self.z ** 2)
+            
+    def normalize(self):
+        mag = self.magnitude()
+        self.x = self.x / mag
+        self.y = self.y / mag
+        self.z = self.z / mag
+
 
 class OSCeleton:
     joints = {}
@@ -29,7 +72,7 @@ class OSCeleton:
         if str(args[0]) == "head":
             self.joints.clear()
             self.frames += 1
-        self.joints[str(args[0])] = args[2:]
+        self.joints[str(args[0])] = Point(args[2:])
         
     def run(self, timeout = 100):
         self.server.recv(timeout)
