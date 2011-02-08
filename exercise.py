@@ -21,7 +21,7 @@ def drawLine(joint1, joint2):
 def glutIdle():
     global frame_count, joints
     server.run()
-    if server.frames > frame_count and server.contains(wanted):
+    if server.frames > frame_count and (wanted in server):
         joints = server.joints.copy()
         frame_count = server.frames
         glutPostRedisplay()

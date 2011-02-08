@@ -77,8 +77,6 @@ class OSCeleton:
     def run(self, timeout = 100):
         self.server.recv(timeout)
         
-    def contains(self, wanted):
-        for item in wanted:
-            if item not in self.joints:
-                return False
-        return True
+    def __contains__(self, wanted):
+        intersection = set(wanted) & set(self.joints)
+	return bool(len(intersection))

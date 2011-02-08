@@ -17,7 +17,7 @@ if __name__ == "__main__":
     while True:
         server.run()
         if server.frames > frame_count:
-            if server.contains(wanted):
+            if wanted in server:
                 head = server.joints['head']
                 neck = server.joints['neck']
                 l_shoulder = server.joints['l_shoulder']
