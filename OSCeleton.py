@@ -56,6 +56,9 @@ class OSCeleton:
         self.server.add_method("/lost_user", 'i', self.lost_user_callback)
         self.server.add_method("/new_skel", 'i', self.new_skeleton_callback)
         self.server.add_method("/joint", 'sifff', self.joint_callback)
+                
+    def __contains__(self, wanted):
+        return set(wanted) <= set(self.joints)
     
     def new_user_callback(self, path, args, types, src):
         print "New user %d" % args[0]
@@ -76,7 +79,4 @@ class OSCeleton:
         
     def run(self, timeout = 100):
         self.server.recv(timeout)
-        
-    def __contains__(self, wanted):
-        intersection = set(wanted) & set(self.joints)
-	return bool(len(intersection))
+
