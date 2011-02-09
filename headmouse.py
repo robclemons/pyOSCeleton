@@ -2,7 +2,7 @@
 
 import time
 from Xlib import display
-from OSCeleton import OSCeleton, Point
+from OSCeleton import *
 
 
 MOVE_POINTER = 2        
@@ -11,18 +11,19 @@ if __name__ == "__main__":
     server = OSCeleton(7110)
     count = 0
     prev_time = time.time()
-    wanted = ['head', 'neck', 'l_shoulder', 'r_shoulder', 'torso']
+    wanted = [HEAD, NECK, LEFT_SHOULDER, RIGHT_SHOULDER, TORSO]
     xd = display.Display()
     frame_count = 0
     while True:
         server.run()
         if server.frames > frame_count:
-            if wanted in server:
-                head = server.joints['head']
-                neck = server.joints['neck']
-                l_shoulder = server.joints['l_shoulder']
-                r_shoulder = server.joints['r_shoulder']
-                torso = server.joints['torso']
+            user = server.get_users()[0]
+            if wanted in user:
+                head = user[HEAD]
+                neck = user[NECK]
+                l_shoulder = user[LEFT_SHOULDER]
+                r_shoulder = user[RIGHT_SHOULDER]
+                torso = user[TORSO]
                 sh_dist = l_shoulder - r_shoulder
                 print count
                 hls = head - l_shoulder

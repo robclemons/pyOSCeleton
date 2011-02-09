@@ -3,6 +3,30 @@
 from math import sqrt
 import liblo
 
+HEAD = 'head'
+NECK = 'neck'
+LEFT_COLLAR = 'l_collar'
+RIGHT_COLLAR = 'r_collar'
+LEFT_SHOULDER = 'l_shoulder'
+RIGHT_SHOULDER = 'r_shoulder'
+LEFT_ELBOW = 'l_elbow'
+RIGHT_ELBOW = 'r_elbow'
+LEFT_WRIST = 'l_wrist'
+RIGHT_WRIST = 'r_wrist'
+LEFT_HAND = 'l_hand'
+RIGHT_HAND = 'r_hand'
+LEFT_FINGERTIP = 'l_fingertip'
+RIGHT_FINGERTIP = 'r_fingertip'
+TORSO = 'torso'
+LEFT_HIP = 'l_hip'
+RIGHT_HIP = 'r_hip'
+LEFT_KNEE = 'l_knee'
+RIGHT_KNEE = 'r_knee'
+LEFT_ANKLE = 'l_ankle'
+RIGHT_ANKLE = 'r_ankle'
+LEFT_FOOT = 'l_foot'
+RIGHT_FOOT = 'r_foot'
+
 class Point:
     '''Euclidean difference can be found with:
         >>> joint_c = joint_a - joint_b
@@ -44,10 +68,26 @@ class Point:
         self.y = self.y / mag
         self.z = self.z / mag
 
+class Skeleton:
+    joints = {}
+    
+    def __init__(self, user):
+        self.id = user
+                        
+    def __contains__(self, wanted):
+        return set(wanted) <= set(self.joints)
+        
+    def __setitem__(self, key, value):
+        self.joints[key] = value
+        
+    def __getitem__(self, key):
+        return self.joints[key]
+        
+    def clear(self):
+        self.joints.clear()
 
 class OSCeleton:
-    joints = {}
-    user = -1
+    users = {}
     frames = 0
     
     def __init__(self, port = 7110):
@@ -56,26 +96,29 @@ class OSCeleton:
         self.server.add_method("/lost_user", 'i', self.lost_user_callback)
         self.server.add_method("/new_skel", 'i', self.new_skeleton_callback)
         self.server.add_method("/joint", 'sifff', self.joint_callback)
-                
-    def __contains__(self, wanted):
-        return set(wanted) <= set(self.joints)
     
     def new_user_callback(self, path, args, types, src):
         print "New user %d" % args[0]
-        self.user = args[0]
+        self.users[args[0]] = Skeleton(args[0])
         
     def lost_user_callback(self, path, args, types, src):
         print "User %d has been lost" % args[0]
-        self.user = -1
+        try:
+            del self.users[args[0]]
+        except KeyError:
+            pass
         
     def new_skeleton_callback(self, path, args, types, src):
         print "Calibration complete, now tracking User %d" % args[0]
         
     def joint_callback(self, path, args, types, src):
-        if str(args[0]) == "head":
-            self.joints.clear()
+        if str(args[0]) == HEAD:
+            self.users[args[1]].clear()
             self.frames += 1
-        self.joints[str(args[0])] = Point(args[2:])
+        self.users[args[1]][str(args[0])] = Point(args[2:])
+        
+    def get_users(self):
+        return self.users.values()
         
     def run(self, timeout = 100):
         self.server.recv(timeout)
