@@ -88,6 +88,7 @@ class Skeleton:
 
 class OSCeleton:
     users = {}
+    _users = {}
     frames = 0
     lost_user = False
     
@@ -100,12 +101,13 @@ class OSCeleton:
     
     def new_user_callback(self, path, args, types, src):
         print "New user %d" % args[0]
-        self.users[args[0]] = Skeleton(args[0])
+        self._users[args[0]] = Skeleton(args[0])
         
     def lost_user_callback(self, path, args, types, src):
         print "User %d has been lost" % args[0]
         try:
             del self.users[args[0]]
+            del self._users[args[0]]
             self.lost_user = True
         except KeyError:
             pass
@@ -114,12 +116,13 @@ class OSCeleton:
         print "Calibration complete, now tracking User %d" % args[0]
         
     def joint_callback(self, path, args, types, src):
-        if str(args[0]) == HEAD:
-            self.users[args[1]].clear()
+        if args[1] not in self._users:
+            self._users[args[1]] = Skeleton(args[1])
+        if str(args[0]) in self._users[args[1]].joints:
+            self.users[args[1]] = self._users[args[1]]
+            self._users[args[1]].clear()
             self.frames += 1
-        if args[1] not in self.users:
-            self.users[args[1]] = Skeleton(args[1])
-        self.users[args[1]][str(args[0])] = Point(args[2:])
+        self._users[args[1]][str(args[0])] = Point(args[2:])
         
     def get_users(self):
         return self.users.keys()

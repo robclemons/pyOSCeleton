@@ -7,7 +7,7 @@ from OSCeleton import *
 
 SIZE_X = 640
 SIZE_Y = 480
-
+TARGET_SIZE = 0.01
 server = OSCeleton(7110)
 wanted = [HEAD, NECK, TORSO, LEFT_SHOULDER, LEFT_ELBOW, LEFT_HAND, LEFT_HIP, RIGHT_SHOULDER, RIGHT_ELBOW, RIGHT_HAND, RIGHT_HIP]
 frame_count = 0
@@ -37,14 +37,17 @@ def getRGB(joint):
         rgb[2] = (3.0 - z) / 0.5
     return tuple(rgb)
 
-def drawLine(joint1, joint2):
-    r, g, b = getRGB(joint1)
-    glColor3f(r, g, b)
-    glVertex3f(joint1.x, 1 - joint1.y, joint1.z)
-    r, g, b = getRGB(joint2)
-    glColor3f(r, g, b)
-    glVertex3f(joint2.x, 1 - joint2.y, joint2.z)
-    
+def drawLine(player, joint_label1, joint_label2):
+    if [joint_label1, joint_label2] in player:
+        joint1 = player[joint_label1]
+        joint2 = player[joint_label2]
+        r, g, b = getRGB(joint1)
+        glColor3f(r, g, b)
+        glVertex3f(joint1.x, 1 - joint1.y, joint1.z)
+        r, g, b = getRGB(joint2)
+        glColor3f(r, g, b)
+        glVertex3f(joint2.x, 1 - joint2.y, joint2.z)
+        
 def glutIdle():
     global frame_count, users
     server.run()
@@ -55,29 +58,51 @@ def glutIdle():
             glutPostRedisplay()
         server.lost_user = False
         for player in server.get_skeletons():
-            if wanted in player:
-                users[player.id] = player
-                frame_count = server.frames
-                glutPostRedisplay()
-
+#            if wanted in player:
+             users[player.id] = player
+             frame_count = server.frames
+             glutPostRedisplay()
+                
+def drawPlayers():
+    glBegin(GL_LINES)
+    for player in users.values():
+        drawLine(player, HEAD, NECK)
+        drawLine(player, NECK, TORSO)
+        drawLine(player, LEFT_SHOULDER, RIGHT_SHOULDER)
+        drawLine(player, LEFT_SHOULDER, LEFT_ELBOW)
+        drawLine(player, LEFT_ELBOW, LEFT_HAND)   
+        drawLine(player, RIGHT_SHOULDER, RIGHT_ELBOW)
+        drawLine(player, RIGHT_ELBOW, RIGHT_HAND)
+        drawLine(player, LEFT_SHOULDER, LEFT_HIP)
+        drawLine(player, RIGHT_SHOULDER, RIGHT_HIP)
+        drawLine(player, LEFT_HIP, RIGHT_HIP)
+    glEnd()
+    
+def drawTarget():
+    glBegin(GL_QUADS)
+    for player in users.values():
+        if [LEFT_SHOULDER, LEFT_HAND] in player:
+            target = player[LEFT_SHOULDER]
+            target.z -= 0.3
+            ht = player[LEFT_HAND] - target
+            if abs(ht.x) < 0.05 and abs(ht.y) < 0.05 and ht.z < 0:
+                r, g, b = (1, 1, 1)
+            else:
+                r, g, b = getRGB(target)
+            glColor3f(r, g, b)
+            glVertex3f(target.x - TARGET_SIZE, target.y + TARGET_SIZE, target.z)
+            glVertex3f(target.x + TARGET_SIZE, target.y + TARGET_SIZE, target.z)
+            glVertex3f(target.x + TARGET_SIZE, target.y - TARGET_SIZE, target.z)
+            glVertex3f(target.x - TARGET_SIZE, target.y - TARGET_SIZE, target.z)
+    glEnd()
+    
 def glutDisplay():
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
     glMatrixMode(GL_PROJECTION)
     glShadeModel(GL_SMOOTH)
     glLoadIdentity()
-    glBegin(GL_LINES)
-    for player in users.values():
-        drawLine(player[HEAD], player[NECK])
-        drawLine(player[NECK], player[TORSO])
-        drawLine(player[LEFT_SHOULDER], player[RIGHT_SHOULDER])
-        drawLine(player[LEFT_SHOULDER], player[LEFT_ELBOW])
-        drawLine(player[LEFT_ELBOW], player[LEFT_HAND])   
-        drawLine(player[RIGHT_SHOULDER], player[RIGHT_ELBOW])
-        drawLine(player[RIGHT_ELBOW], player[RIGHT_HAND])
-        drawLine(player[LEFT_SHOULDER], player[LEFT_HIP])
-        drawLine(player[RIGHT_SHOULDER], player[RIGHT_HIP])
-        drawLine(player[LEFT_HIP], player[RIGHT_HIP])
-    glEnd()
+    drawPlayers()
+    drawTarget()
     glFlush()
     glutSwapBuffers()
     
