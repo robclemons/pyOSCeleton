@@ -89,6 +89,7 @@ class Skeleton:
 class OSCeleton:
     users = {}
     frames = 0
+    lost_user = False
     
     def __init__(self, port = 7110):
         self.server = liblo.Server(port)
@@ -105,6 +106,7 @@ class OSCeleton:
         print "User %d has been lost" % args[0]
         try:
             del self.users[args[0]]
+            self.lost_user = True
         except KeyError:
             pass
         
@@ -115,9 +117,14 @@ class OSCeleton:
         if str(args[0]) == HEAD:
             self.users[args[1]].clear()
             self.frames += 1
+        if args[1] not in self.users:
+            self.users[args[1]] = Skeleton(args[1])
         self.users[args[1]][str(args[0])] = Point(args[2:])
         
     def get_users(self):
+        return self.users.keys()
+        
+    def get_skeletons(self):
         return self.users.values()
         
     def run(self, timeout = 100):

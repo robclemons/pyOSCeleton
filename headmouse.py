@@ -1,6 +1,5 @@
 #! /usr/bin/env python
 
-import time
 from Xlib import display
 from OSCeleton import *
 
@@ -10,26 +9,20 @@ MOVE_POINTER = 2
 if __name__ == "__main__":
     server = OSCeleton(7110)
     count = 0
-    prev_time = time.time()
     wanted = [HEAD, NECK, LEFT_SHOULDER, RIGHT_SHOULDER, TORSO]
     xd = display.Display()
     frame_count = 0
     while True:
         server.run()
         if server.frames > frame_count:
-            user = server.get_users()[0]
+            user = server.get_skeletons()[0]
             if wanted in user:
-                head = user[HEAD]
-                neck = user[NECK]
-                l_shoulder = user[LEFT_SHOULDER]
-                r_shoulder = user[RIGHT_SHOULDER]
-                torso = user[TORSO]
-                sh_dist = l_shoulder - r_shoulder
+                sh_dist = user[LEFT_SHOULDER] - user[RIGHT_SHOULDER]
                 print count
-                hls = head - l_shoulder
-                hrs = head - r_shoulder
-                hn = head - neck
-                ht = head - torso
+                hls = user[HEAD] - user[LEFT_SHOULDER]
+                hrs = user[HEAD] - user[RIGHT_SHOULDER]
+                hn = user[HEAD] - user[NECK]
+                ht = user[HEAD] - user[TORSO]
                 center_offset = 0.0025
                 if abs(hrs.x) + center_offset < abs(hls.x):
                     print "R"
@@ -54,6 +47,5 @@ if __name__ == "__main__":
                 print "HEAD - TORSO = " + str(ht)
                 xd.flush()
                 count += 1
-                prev_time = time.time()
                 frame_count = server.frames
   
