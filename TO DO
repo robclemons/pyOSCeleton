@@ -3,11 +3,10 @@ headmouse.py:
 -increase speed of mouse the further off center the head is
 
 exercise.py:
--color stick figure's lines based on depth(aid in seeing depth)
+DONE-color stick figure's lines based on depth(aid in seeing depth)
 -add targets to hit/reach
 -add calibration
 
 OSCeleton.py:
--support multiple users
--add support for multiple users
+DONE-support multiple users
 -maybe use threading with some callback whenever a frame is ready?
