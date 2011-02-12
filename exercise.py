@@ -8,8 +8,8 @@ from OSCeleton import *
 SIZE_X = 640
 SIZE_Y = 480
 TARGET_SIZE = 0.01
+
 server = OSCeleton(7110)
-wanted = [HEAD, NECK, TORSO, LEFT_SHOULDER, LEFT_ELBOW, LEFT_HAND, LEFT_HIP, RIGHT_SHOULDER, RIGHT_ELBOW, RIGHT_HAND, RIGHT_HIP]
 frame_count = 0
 users = {}
     
@@ -83,7 +83,7 @@ def drawTarget():
     for player in users.values():
         if [LEFT_SHOULDER, LEFT_HAND] in player:
             target = player[LEFT_SHOULDER]
-            target.z -= 0.3
+            target.z -= 0.35
             ht = player[LEFT_HAND] - target
             if abs(ht.x) < 0.05 and abs(ht.y) < 0.05 and ht.z < 0:
                 r, g, b = (1, 1, 1)
