@@ -1,6 +1,32 @@
 #! /usr/bin/env python
 
-from math import sqrt
+"""
+   Written by: Robbie Clemons
+   Email: RobClemons@gmail.com
+   Project: pyOSCeleton
+   Licensed under GNU GPLv3
+   Released February 2011
+
+   This document provides the Point, Skeleton, and OSCeleton classes which
+   are meant to recieve and contain skeleton data from OSCeleton.
+   
+"""
+
+# Copyright (C) 2011 Robbie Clemons
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>
+
 import liblo
 
 HEAD = 'head'
@@ -81,6 +107,7 @@ class Point:
         self.y = self.y / mag
         self.z = self.z / mag
 
+#mostly useless class, it's only purpose is overloading __contains__ 
 class Skeleton:
     """Holds a user's joint positions
     
@@ -141,6 +168,7 @@ class OSCeleton:
     _users = {}
     frames = 0
     lost_user = False
+    real_world = False
     
     def __init__(self, port = 7110):
         """Initialize OSCeleton.
@@ -184,7 +212,14 @@ class OSCeleton:
             self.users[args[1]] = self._users[args[1]]
             self._users[args[1]].clear()
             self.frames += 1
-        self._users[args[1]][str(args[0])] = Point(args[2:])
+        #convert to mm in real world measurements
+        if self.real_world:
+            x = 1280 - args[2] * 2560
+            y = 960 - args[3] * 1920
+            z = args[4] * 1280
+            self._users[args[1]][str(args[0])] = Point((x,y,z))
+        else:
+            self._users[args[1]][str(args[0])] = Point(args[2:])
         
     def get_users(self):
         """Return a list of users"""
