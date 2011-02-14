@@ -1,10 +1,6 @@
-headmouse.py:
--add calibration
--increase speed of mouse the further off center the head is
-
 exercise.py:
 DONE-color stick figure's lines based on depth(aid in seeing depth)
--add targets to hit/reach
+PARTIALLY IMPLEMENTED-add targets to hit/reach
 -add calibration
 
 OSCeleton.py:
