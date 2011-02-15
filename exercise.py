@@ -10,7 +10,6 @@
    exercise.py demonstrates using pyOSCeleton to draw users' skeletons
    and allow the users to hit targets.  For proper results use the -r option
    when you start OSCeleton to disable mirror mode.  I got the best results when using the noise filter(-f option).
-   
 """
 
 # Copyright (C) 2011 Robbie Clemons

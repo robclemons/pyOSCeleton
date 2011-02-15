@@ -53,18 +53,17 @@ RIGHT_ANKLE = 'r_ankle'
 LEFT_FOOT = 'l_foot'
 RIGHT_FOOT = 'r_foot'
 
-class Point:
+class Point(object):
     """Holds a 3 dimensional point.
     
     Point has 3 properties which are the coordinates x, y and z.
-    
     """
+    __slots__ = ('x', 'y', 'z')
     
     def __init__(self, (x, y, z)):
         """Initialize Point object.
         
         Requires a tuple containing the x, y and z coordinates in that order.
-        
         """
         self.x = x
         self.y = y
@@ -114,8 +113,7 @@ class Skeleton:
     Skeleton.joints is a dictionary whose keys are joint labels
     and its' values are the joint's Point.
     
-    Skeleton.id is the user's number
-    
+    Skeleton.id is the user's number    
     """
     
     joints = {}
@@ -124,7 +122,6 @@ class Skeleton:
         """Initialize Skeleton.
         
         Requires the user's number
-        
         """
         self.id = user
                         
@@ -135,7 +132,6 @@ class Skeleton:
         
         >>>if [HEAD, NECK] in skeleton:
         >>>    print "skeleton contains HEAD and NECK"
-        
         """
         return set(wanted) <= set(self.joints)
         
@@ -161,7 +157,6 @@ class OSCeleton:
     
     OSCeleton.lost_user is a flag that is set to True whenever the server
     receives a message claiming that the user is no longer seen.
-    
     """
     
     users = {}
@@ -176,7 +171,6 @@ class OSCeleton:
         Accepts the optional argument of the port for the server to listen on.
         
         Creates the server and registers the callbacks.
-        
         """
         self.server = liblo.Server(port)
         self.server.add_method("/new_user", 'i', self.new_user_callback)
@@ -232,8 +226,7 @@ class OSCeleton:
     def run(self, timeout = 100):
         """Wait for and catch event.
         
-        Accepts optional timeout argument.
-        
+        Accepts optional timeout argument.        
         """
         self.server.recv(timeout)
 
