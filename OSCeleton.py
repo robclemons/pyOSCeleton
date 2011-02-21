@@ -28,6 +28,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 import liblo
+from math import sqrt
 
 HEAD = 'head'
 NECK = 'neck'
