@@ -35,7 +35,7 @@ from OSCeleton import *
 SIZE_X = 640
 SIZE_Y = 480
 TARGET_SIZE = 60
-TARGET = [Point((0,0,440)), Point((-440,0,50)), Point((0,-440,50))]
+TARGET = [Point(0, 0, 440), Point(-440, 0, 50), Point(0, -440, 50)]
 
 server = OSCeleton(7110)
 server.real_world = True

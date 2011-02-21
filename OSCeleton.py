@@ -61,10 +61,10 @@ class Point(object):
     """
     __slots__ = ('x', 'y', 'z')
     
-    def __init__(self, (x, y, z)):
+    def __init__(self, x, y, z):
         """Initialize Point object.
         
-        Requires a tuple containing the x, y and z coordinates in that order.
+        Accepts the x, y and z coordinates in that order.
         """
         self.x = x
         self.y = y
@@ -87,14 +87,14 @@ class Point(object):
         x = self.x + other.x
         y = self.y + other.y
         z = self.z + other.z
-        return Point((x, y, z))
+        return Point(x, y, z)
         
     def __sub__(self, other):
         """Subtract Point objects' coordinates"""
         x = self.x - other.x
         y = self.y - other.y
         z = self.z - other.z
-        return Point((x, y, z))
+        return Point(x, y, z)
         
     def magnitude(self):
         """Calculate vector magnitude of Point"""
@@ -212,9 +212,10 @@ class OSCeleton:
             x = 1280 - args[2] * 2560
             y = 960 - args[3] * 1920
             z = args[4] * 1280
-            self._users[args[1]][str(args[0])] = Point((x,y,z))
+            self._users[args[1]][str(args[0])] = Point(x, y, z)
         else:
-            self._users[args[1]][str(args[0])] = Point(args[2:])
+            x, y, z = args[2:0]
+            self._users[args[1]][str(args[0])] = Point(x, y, z)
         
     def get_users(self):
         """Return a list of users"""
