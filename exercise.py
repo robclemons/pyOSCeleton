@@ -43,31 +43,32 @@ frame_count = 0
 users = {}
 hits = 0
     
-def getRGB(joint):
+def getRGB(joint, color_range = 600):
     """Returns a tuple with r, g and b color values based on joint's Z.
     
     Ugly but does the job, needs to be completely rewritten"""
-    z = joint.z / 200.0
-    z = z % 3 #smaller total gives more noticeable transitions
+    z = joint.z
+    z = z % color_range #smaller total gives more noticeable transitions
+    sub_interval = color_range / 6.0
     rgb = [0, 0, 0]
-    if z < 0.5:
+    if z < sub_interval:
         rgb[0] = 1.0
-        rgb[1] = z / 0.5
-    elif z < 1.0:
+        rgb[1] = z / sub_interval
+    elif z < 2 * sub_interval:
         rgb[1] = 1.0
-        rgb[0] = (1.0 - z) / 0.5
-    elif z < 1.5:
+        rgb[0] = (2 * sub_interval - z) / sub_interval
+    elif z < 3 * sub_interval:
         rgb[1] = 1.0
-        rgb[2] = (z - 1.0) / 0.5
-    elif z < 2.0:
+        rgb[2] = (z - 2 * sub_interval) / sub_interval
+    elif z < 4 * sub_interval:
         rgb[2] = 1.0
-        rgb[1] = (2.0 - z) / 0.5
-    elif z < 2.5:
+        rgb[1] = (4 * sub_interval - z) / sub_interval
+    elif z < 5 * sub_interval:
         rgb[2] = 1.0
-        rgb[0] = (z - 2.0) / 0.5
+        rgb[0] = (z - 4 * sub_interval) / sub_interval
     else:
         rgb[0] = 1
-        rgb[2] = (3.0 - z) / 0.5
+        rgb[2] = (color_range - z) / sub_interval
     return tuple(rgb)
 
 def drawLine(player, joint_label1, joint_label2):
