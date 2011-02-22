@@ -111,6 +111,10 @@ def drawPlayers():
         drawLine(player, LEFT_SHOULDER, LEFT_HIP)
         drawLine(player, RIGHT_SHOULDER, RIGHT_HIP)
         drawLine(player, LEFT_HIP, RIGHT_HIP)
+        drawLine(player, LEFT_HIP, LEFT_KNEE)
+        drawLine(player, LEFT_KNEE, LEFT_FOOT)
+        drawLine(player, RIGHT_HIP, RIGHT_KNEE)
+        drawLine(player, RIGHT_KNEE, RIGHT_FOOT)
         drawLine(player, LEFT_SHOULDER, RIGHT_SHOULDER)
         drawLine(player, LEFT_SHOULDER, LEFT_ELBOW)
         drawLine(player, LEFT_ELBOW, LEFT_HAND)   
@@ -133,10 +137,10 @@ def drawTarget():
             else:
                 r, g, b = getRGB(target)
             glColor3f(r, g, b)
-            glVertex3f(target.x - TARGET_SIZE, target.y + TARGET_SIZE, target.z)
-            glVertex3f(target.x + TARGET_SIZE, target.y + TARGET_SIZE, target.z)
-            glVertex3f(target.x + TARGET_SIZE, target.y - TARGET_SIZE, target.z)
-            glVertex3f(target.x - TARGET_SIZE, target.y - TARGET_SIZE, target.z)            
+            glVertex3f(target.x - TARGET_SIZE / 2, target.y + TARGET_SIZE / 2, target.z)
+            glVertex3f(target.x + TARGET_SIZE / 2, target.y + TARGET_SIZE / 2, target.z)
+            glVertex3f(target.x + TARGET_SIZE / 2, target.y - TARGET_SIZE / 2, target.z)
+            glVertex3f(target.x - TARGET_SIZE / 2, target.y - TARGET_SIZE / 2, target.z)            
     glEnd()
     
 def glutDisplay():
