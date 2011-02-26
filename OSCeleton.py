@@ -211,7 +211,7 @@ class OSCeleton:
         if self.real_world:
             x = 1280 - args[2] * 2560
             y = 960 - args[3] * 1920
-            z = args[4] * 1280
+            z = -args[4] * 1280
             self._users[args[1]][str(args[0])] = Point(x, y, z)
         else:
             x, y, z = args[2:0]

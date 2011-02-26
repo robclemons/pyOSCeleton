@@ -35,20 +35,28 @@ from OSCeleton import *
 SIZE_X = 640
 SIZE_Y = 480
 TARGET_SIZE = 60
-TARGET = [Point(0, 0, 440), Point(-440, 0, 50), Point(0, -440, 50)]
+TARGET = [Point(1, 1, -440), Point(-440, 0, 50), Point(0, -440, 50)]
 
 server = OSCeleton(7110)
 server.real_world = True
 frame_count = 0
 users = {}
 hits = 0
+orientation = Point(0,0,0)
+
+def cross(p1, p2):
+    """Determines the cross product of two vectors"""
+    x = p1.y * p2.z - p1.z * p2.y
+    y = p1.z * p2.x - p1.x * p2.z
+    z = p1.x * p2.y - p1.y * p2.x
+    return Point(x, y, z)
     
 def getRGB(joint, color_range = 600):
     """Returns a tuple with r, g and b color values based on joint's Z.
     
     Ugly but does the job, needs to be completely rewritten"""
     z = joint.z
-    z = z % color_range #smaller total gives more noticeable transitions
+    z = z % color_range #smaller range gives more noticeable transitions
     sub_interval = color_range / 6.0
     rgb = [0, 0, 0]
     if z < sub_interval:
@@ -125,31 +133,69 @@ def drawPlayers():
 def drawTarget():
     """Draw a target changing its' position each time it's hit"""
     global hits
-    glBegin(GL_QUADS)
+    glMatrixMode(GL_MODELVIEW)
+    glLineWidth(1)
     for player in users.values():
         if (RIGHT_SHOULDER, RIGHT_HAND) in player:
-            target = player[RIGHT_SHOULDER]
-            target -= TARGET[hits % 3]
+            glPushMatrix()
+            joint = player[RIGHT_SHOULDER]
+            armLen = 440
+            target = Point(orientation.x * armLen , orientation.y * armLen, orientation.z * armLen)
+            print target
+            target += player[RIGHT_SHOULDER]
+            glTranslate(target.x, target.y, target.z)
             ht = player[RIGHT_HAND] - target
             if abs(ht.x) < TARGET_SIZE and abs(ht.y) < TARGET_SIZE and abs(ht.z) < TARGET_SIZE:
                 r, g, b = (1, 1, 1)
                 hits += 1
             else:
                 r, g, b = getRGB(target)
+            glRotatef(orientation.x * 90, 0, 1, 0)
+            glRotatef(orientation.y * -90, 1, 0, 0)
             glColor3f(r, g, b)
-            glVertex3f(target.x - TARGET_SIZE / 2, target.y + TARGET_SIZE / 2, target.z)
-            glVertex3f(target.x + TARGET_SIZE / 2, target.y + TARGET_SIZE / 2, target.z)
-            glVertex3f(target.x + TARGET_SIZE / 2, target.y - TARGET_SIZE / 2, target.z)
-            glVertex3f(target.x - TARGET_SIZE / 2, target.y - TARGET_SIZE / 2, target.z)            
+            glutSolidCube(TARGET_SIZE)
+            glColor3f(0, 0, 0)
+            glutWireCube(TARGET_SIZE + 1)
+            glPopMatrix()        
+    
+def drawPlayersOrientation():
+    global orientation
+    glBegin(GL_LINES)
+    for player in users.values():
+        if (TORSO, LEFT_SHOULDER, RIGHT_SHOULDER) in player:
+            torso = player[TORSO]
+            l_shoulder = player[LEFT_SHOULDER]
+            tl = player[LEFT_SHOULDER] - player[TORSO]
+            tr = player[RIGHT_SHOULDER] - player[TORSO]
+            tl.normalize()
+            tr.normalize()
+            result = cross(tr, tl)
+            result.normalize()
+            orientation = result
+            scale = 1
+            result.x *= scale
+            result.y *= scale
+            result.z *= scale
+            result = result + torso
+            r, g, b = getRGB(torso)
+            glColor3f(r, g, b)
+            glVertex3f(torso.x, torso.y, torso.z)
+            r, g, b = getRGB(result)
+            glColor3f(r, g, b)
+            glVertex3f(result.x, result.y, result.z)
+            print orientation
     glEnd()
+    
     
 def glutDisplay():
     """Registered as GlutDisplayFunc.  Calls all drawing functions"""
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
     glMatrixMode(GL_PROJECTION)
     glShadeModel(GL_SMOOTH)
+    glLineWidth(5)
     glLoadIdentity()
     drawPlayers()
+    drawPlayersOrientation()
     drawTarget()
     glFlush()
     glutSwapBuffers()
@@ -159,7 +205,8 @@ if __name__ == "__main__":
     glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH)
     glutInitWindowSize(SIZE_X, SIZE_Y)
     glutCreateWindow("PyExercise")
-    glOrtho(-1280, 1280, -960, 960, -10000, 0)
+    glOrtho(-1280, 1280, -960, 960, 0, 10000)
+    glEnable(GL_DEPTH_TEST)
     glutDisplayFunc(glutDisplay)
     glutIdleFunc(glutIdle)
     glLineWidth(5)
