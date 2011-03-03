@@ -141,7 +141,6 @@ def drawTarget():
             joint = player[RIGHT_SHOULDER]
             armLen = 440
             target = Point(orientation.x * armLen , orientation.y * armLen, orientation.z * armLen)
-            print target
             target += player[RIGHT_SHOULDER]
             glTranslate(target.x, target.y, target.z)
             ht = player[RIGHT_HAND] - target
@@ -159,6 +158,10 @@ def drawTarget():
             glPopMatrix()        
     
 def drawPlayersOrientation():
+    """Determines and draws a users orientation.
+    
+    Calculates orientation by using 3 points to create two vectors
+    and then cross multiplies those vectors to find a vector perpindicular to both"""
     global orientation
     glBegin(GL_LINES)
     for player in users.values():
@@ -169,21 +172,15 @@ def drawPlayersOrientation():
             tr = player[RIGHT_SHOULDER] - player[TORSO]
             tl.normalize()
             tr.normalize()
-            result = cross(tr, tl)
-            result.normalize()
-            orientation = result
-            scale = 1
-            result.x *= scale
-            result.y *= scale
-            result.z *= scale
-            result = result + torso
+            orientation = cross(tr, tl)
+            orientation.normalize()
             r, g, b = getRGB(torso)
             glColor3f(r, g, b)
             glVertex3f(torso.x, torso.y, torso.z)
-            r, g, b = getRGB(result)
+            orient_line = torso + orientation
+            r, g, b = getRGB(orient_line)
             glColor3f(r, g, b)
-            glVertex3f(result.x, result.y, result.z)
-            print orientation
+            glVertex3f(orient_line.x, orient_line.y, orient_line.z)
     glEnd()
     
     
