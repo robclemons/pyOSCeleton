@@ -31,11 +31,22 @@ from OpenGL.GL import *
 from OpenGL.GLUT import *
 from OpenGL.GLU import *
 from OSCeleton import *
+import numpy as np
 
 SIZE_X = 640
 SIZE_Y = 480
 TARGET_SIZE = 60
-TARGET = [Point(1, 1, -440), Point(-440, 0, 50), Point(0, -440, 50)]
+
+#moves target
+TARGET = [np.array([[1, 0, 0],  #in front
+                    [0, 1, 0],
+                    [0, 0, 1]]), 
+        np.array([[np.cos(-np.pi/2.0), 0, np.sin(-np.pi/2.0)], # to the side 
+        [0, 1, 0],
+        [-np.sin(-np.pi/2.0), 0, np.cos(-np.pi/2.0)]]),
+        np.array([[1, 0, 0],#up above
+        [0, np.cos(np.pi/2.0), -np.sin(np.pi/2.0)],
+        [0, np.sin(np.pi/2.0), np.cos(np.pi/2.0)]])]
 
 server = OSCeleton(7110)
 server.real_world = True
@@ -142,6 +153,9 @@ def drawTarget():
             armLen = (player[RIGHT_HAND] - player[RIGHT_ELBOW]).magnitude()
             armLen += (player[RIGHT_ELBOW] - player[RIGHT_SHOULDER]).magnitude()
             target = Point(orientation.x * armLen , orientation.y * armLen, orientation.z * armLen)
+            rotMat = TARGET[hits % len(TARGET)]
+            target = np.dot([target.x, target.y, target.z], rotMat)
+            target = Point(target[0], target[1], target[2])
             target += player[RIGHT_SHOULDER]
             glTranslate(target.x, target.y, target.z)
             ht = player[RIGHT_HAND] - target
