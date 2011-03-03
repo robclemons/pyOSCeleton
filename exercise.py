@@ -139,7 +139,8 @@ def drawTarget():
         if (RIGHT_SHOULDER, RIGHT_HAND) in player:
             glPushMatrix()
             joint = player[RIGHT_SHOULDER]
-            armLen = 440
+            armLen = (player[RIGHT_HAND] - player[RIGHT_ELBOW]).magnitude()
+            armLen += (player[RIGHT_ELBOW] - player[RIGHT_SHOULDER]).magnitude()
             target = Point(orientation.x * armLen , orientation.y * armLen, orientation.z * armLen)
             target += player[RIGHT_SHOULDER]
             glTranslate(target.x, target.y, target.z)
