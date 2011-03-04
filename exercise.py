@@ -27,7 +27,6 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>
 
-import time
 import sys
 from ConfigParser import SafeConfigParser
 import numpy as np
@@ -45,7 +44,6 @@ server = OSCeleton(7110)
 server.real_world = True
 frame_count = 0
 users = {}
-orientation = Point(0,0,0)
 
 class Target(Point):
     """Stores target information"""
@@ -167,6 +165,7 @@ def drawTarget():
     for player in users.values():
         targ = users_targets[player.hits % len(users_targets)]
         if (targ.base_joint, targ.middle_joint, targ.hit_joint) in player:
+            orientation = getPlayersOrientation(player)
             #draws a sphere on the joint the player has to use
             glPushMatrix()
             ball = player[targ.hit_joint]
@@ -211,32 +210,26 @@ def drawTarget():
             glutWireCube(TARGET_SIZE + 1)
             glPopMatrix()        
     
-def drawPlayersOrientation():
-    """Determines and draws a users orientation.
+def getPlayersOrientation(player):
+    """Determines a users orientation.
+    
+    Accepts a Skeleton and returns a Point.
     
     Calculates orientation by using 3 points to create two vectors
     and then cross multiplies those vectors to find a vector perpindicular to both"""
-    global orientation
-    glBegin(GL_LINES)
-    for player in users.values():
-        if (TORSO, LEFT_SHOULDER, RIGHT_SHOULDER) in player:
-            torso = player[TORSO]
-            l_shoulder = player[LEFT_SHOULDER]
-            tl = player[LEFT_SHOULDER] - player[TORSO]
-            tr = player[RIGHT_SHOULDER] - player[TORSO]
-            tl.normalize()
-            tr.normalize()
-            orientation = cross(tr, tl)
-            orientation.normalize()
-            r, g, b = getRGB(torso)
-            glColor3f(r, g, b)
-            glVertex3f(torso.x, torso.y, torso.z)
-            orient_line = torso + orientation
-            r, g, b = getRGB(orient_line)
-            glColor3f(r, g, b)
-            glVertex3f(orient_line.x, orient_line.y, orient_line.z)
-    glEnd()
-    
+    if (TORSO, LEFT_SHOULDER, RIGHT_SHOULDER) in player:
+        torso = player[TORSO]
+        l_shoulder = player[LEFT_SHOULDER]
+        tl = player[LEFT_SHOULDER] - player[TORSO]
+        tr = player[RIGHT_SHOULDER] - player[TORSO]
+        tl.normalize()
+        tr.normalize()
+        orientation = cross(tr, tl)
+        orientation.normalize()
+    else:
+        orientation = Point(1, 1, 1)
+        orientation.normalize()
+    return orientation
     
 def glutDisplay():
     """Registered as GlutDisplayFunc.  Calls all drawing functions"""
@@ -246,7 +239,6 @@ def glutDisplay():
     glLineWidth(5)
     glLoadIdentity()
     drawPlayers()
-    drawPlayersOrientation()
     drawTarget()
     glFlush()
     glutSwapBuffers()
