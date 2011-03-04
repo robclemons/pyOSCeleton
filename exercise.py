@@ -172,6 +172,13 @@ def drawTarget():
     glLineWidth(1)
     for player in users.values():
         if (targ.base_joint, targ.middle_joint, targ.hit_joint) in player:
+            #draws a sphere on the joint the player has to use
+            glPushMatrix()
+            ball = player[targ.hit_joint]
+            glTranslate(ball.x, ball.y, ball.z)
+            glColor3f(1, 1, 1)
+            glutSolidSphere(TARGET_SIZE/ 2.0, 30, 30)
+            glPopMatrix()
             glPushMatrix()
             #rotates target along the y axis, ie user turns side to side
             yRotMat = np.array([[np.cos(orientation.x * -np.pi/2.0), 0, -np.sin(orientation.x * -np.pi/2.0)],
