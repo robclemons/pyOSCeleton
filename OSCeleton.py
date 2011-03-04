@@ -97,9 +97,11 @@ class Point(object):
         return Point(x, y, z)
     
     def copy(self):
+        """Returns a new Point with the same coordinates"""
         return Point(self.x, self.y, self.z)
         
     def vals(self):
+        """Returns a list containg the x, y and z coordinates"""
         return [self.x, self.y, self.z]
         
     def magnitude(self):
@@ -121,6 +123,8 @@ class Skeleton:
     and its' values are the joint's Point.
     
     Skeleton.id is the user's number    
+    
+    Skeleton.hits is a counter for a developer to use as they see fit.
     """
     
     joints = {}
