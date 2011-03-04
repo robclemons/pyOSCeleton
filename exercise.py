@@ -27,6 +27,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>
 
+import time
 from OpenGL.GL import *
 from OpenGL.GLUT import *
 from OpenGL.GLU import *
@@ -38,15 +39,7 @@ SIZE_Y = 480
 TARGET_SIZE = 60
 
 #moves target
-TARGET = [np.array([[1, 0, 0],  #in front
-                    [0, 1, 0],
-                    [0, 0, 1]]), 
-        np.array([[np.cos(-np.pi/2.0), 0, np.sin(-np.pi/2.0)], # to the side 
-        [0, 1, 0],
-        [-np.sin(-np.pi/2.0), 0, np.cos(-np.pi/2.0)]]),
-        np.array([[1, 0, 0],#up above
-        [0, np.cos(np.pi/2.0), -np.sin(np.pi/2.0)],
-        [0, np.sin(np.pi/2.0), np.cos(np.pi/2.0)]])]
+targets = []
 
 server = OSCeleton(7110)
 server.real_world = True
@@ -54,6 +47,7 @@ frame_count = 0
 users = {}
 hits = 0
 orientation = Point(0,0,0)
+start = 0.0
 
 def cross(p1, p2):
     """Determines the cross product of two vectors"""
@@ -108,8 +102,10 @@ def glutIdle():
     """Registered as GlutIdleFunc.
     
     Catches server events, adds and removes users and loads newest Skeletons"""
-    global frame_count, users
+    global frame_count, users, start
     server.run()
+    if len(targets) == 0 and server.frames == 30:
+        start = time.time()
     if server.frames > frame_count or server.lost_user:
         lost_users = set(users.keys()) - set(server.get_users())
         for each in lost_users:
@@ -143,34 +139,46 @@ def drawPlayers():
     
 def drawTarget():
     """Draw a target changing its' position each time it's hit"""
-    global hits
+    global hits, targets, start
     glMatrixMode(GL_MODELVIEW)
     glLineWidth(1)
     for player in users.values():
         if (RIGHT_SHOULDER, RIGHT_HAND) in player:
-            glPushMatrix()
-            joint = player[RIGHT_SHOULDER]
-            armLen = (player[RIGHT_HAND] - player[RIGHT_ELBOW]).magnitude()
-            armLen += (player[RIGHT_ELBOW] - player[RIGHT_SHOULDER]).magnitude()
-            target = Point(orientation.x * armLen , orientation.y * armLen, orientation.z * armLen)
-            rotMat = TARGET[hits % len(TARGET)]
-            target = np.dot([target.x, target.y, target.z], rotMat)
-            target = Point(target[0], target[1], target[2])
-            target += player[RIGHT_SHOULDER]
-            glTranslate(target.x, target.y, target.z)
-            ht = player[RIGHT_HAND] - target
-            if abs(ht.x) < TARGET_SIZE and abs(ht.y) < TARGET_SIZE and abs(ht.z) < TARGET_SIZE:
-                r, g, b = (1, 1, 1)
-                hits += 1
+            if len(targets) < 3:
+                if time.time() - start > 5:
+                    targets.append(player[RIGHT_HAND] - player[RIGHT_SHOULDER])
+                    start = time.time()
+                else:
+                    print time.time() - start
             else:
-                r, g, b = getRGB(target)
-            glRotatef(orientation.x * 90, 0, 1, 0)
-            glRotatef(orientation.y * -90, 1, 0, 0)
-            glColor3f(r, g, b)
-            glutSolidCube(TARGET_SIZE)
-            glColor3f(0, 0, 0)
-            glutWireCube(TARGET_SIZE + 1)
-            glPopMatrix()        
+                glPushMatrix()
+                trgt = targets[hits % len(targets)].copy()
+                #rotates target along the y axis, ie user turns side to side
+                yRotMat = np.array([[np.cos(orientation.x * -np.pi/2.0), 0, -np.sin(orientation.x * -np.pi/2.0)],
+                          [0, 1, 0],
+                          [np.sin(orientation.x * -np.pi/2.0), 0, np.cos(orientation.x * -np.pi/2.0)]])
+                #rotates target along the x axis, ie user leans forward or back
+                xRotMat = np.array([[1, 0, 0],
+                          [0, np.cos(orientation.y * np.pi/2.0), np.sin(orientation.y * np.pi/2.0)],
+                          [0, -np.sin(orientation.y * np.pi/2.0), np.cos(orientation.y * np.pi/2.0)]])
+                trgt = np.dot(yRotMat, [trgt.x, trgt.y, trgt.z])
+                trgt = np.dot(xRotMat, trgt)
+                trgt = Point(trgt[0], trgt[1], trgt[2])
+                trgt += player[RIGHT_SHOULDER]
+                glTranslate(trgt.x, trgt.y, trgt.z)
+                ht = player[RIGHT_HAND] - trgt
+                if abs(ht.x) < TARGET_SIZE and abs(ht.y) < TARGET_SIZE and abs(ht.z) < TARGET_SIZE:
+                    r, g, b = (1, 1, 1)
+                    hits += 1
+                else:
+                    r, g, b = getRGB(trgt)
+                glRotatef(orientation.x * 90, 0, 1, 0)
+                glRotatef(orientation.y * -90, 1, 0, 0)
+                glColor3f(r, g, b)
+                glutSolidCube(TARGET_SIZE)
+                glColor3f(0, 0, 0)
+                glutWireCube(TARGET_SIZE + 1)
+                glPopMatrix()        
     
 def drawPlayersOrientation():
     """Determines and draws a users orientation.

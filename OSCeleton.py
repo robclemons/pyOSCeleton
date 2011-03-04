@@ -95,6 +95,9 @@ class Point(object):
         y = self.y - other.y
         z = self.z - other.z
         return Point(x, y, z)
+    
+    def copy(self):
+        return Point(self.x, self.y, self.z)
         
     def magnitude(self):
         """Calculate vector magnitude of Point"""
