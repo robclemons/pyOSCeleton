@@ -40,16 +40,12 @@ SIZE_X = 640
 SIZE_Y = 480
 TARGET_SIZE = 60
 
-#moves target
 users_targets = []
-
 server = OSCeleton(7110)
 server.real_world = True
 frame_count = 0
 users = {}
-hits = 0
 orientation = Point(0,0,0)
-start = 0.0
 
 class Target(Point):
     """Stores target information"""
@@ -166,11 +162,10 @@ def drawPlayers():
     
 def drawTarget():
     """Draw a target changing its' position each time it's hit"""
-    global hits, start
-    targ = users_targets[hits % len(users_targets)]
     glMatrixMode(GL_MODELVIEW)
     glLineWidth(1)
     for player in users.values():
+        targ = users_targets[player.hits % len(users_targets)]
         if (targ.base_joint, targ.middle_joint, targ.hit_joint) in player:
             #draws a sphere on the joint the player has to use
             glPushMatrix()
@@ -205,7 +200,7 @@ def drawTarget():
             ht = player[targ.hit_joint] - targPoint
             if abs(ht.x) < TARGET_SIZE and abs(ht.y) < TARGET_SIZE and abs(ht.z) < TARGET_SIZE:
                 r, g, b = (1, 1, 1)
-                hits += 1
+                player.hits += 1
             else:
                 r, g, b = getRGB(targPoint)
             glRotatef(orientation.x * 90, 0, 1, 0)

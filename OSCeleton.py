@@ -131,6 +131,7 @@ class Skeleton:
         Requires the user's number
         """
         self.id = user
+        self.hits = 0
                         
     def __contains__(self, wanted):
         """Test whether Skeleton.joints contains everything passed to it.
