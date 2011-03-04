@@ -68,6 +68,7 @@ def cross(p1, p2):
     return Point(x, y, z)
     
 def getTargets(iniFile):
+    """Parses ini file and adds the targets found in the file to users_targets"""
     global users_targets
     parser = SafeConfigParser()
     parser.read(iniFile)
@@ -130,10 +131,8 @@ def glutIdle():
     """Registered as GlutIdleFunc.
     
     Catches server events, adds and removes users and loads newest Skeletons"""
-    global frame_count, users, start
+    global frame_count, users
     server.run()
-    if len(users_targets) == 0 and server.frames == 30:
-        start = time.time()
     if server.frames > frame_count or server.lost_user:
         lost_users = set(users.keys()) - set(server.get_users())
         for each in lost_users:
@@ -173,47 +172,42 @@ def drawTarget():
     glLineWidth(1)
     for player in users.values():
         if (targ.base_joint, targ.middle_joint, targ.hit_joint) in player:
-            if len(users_targets) < 0:
-                if time.time() - start > 5:
-                    targets.append(player[RIGHT_HAND] - player[RIGHT_SHOULDER])
-                    start = time.time()
-                else:
-                    print time.time() - start
+            glPushMatrix()
+            #rotates target along the y axis, ie user turns side to side
+            yRotMat = np.array([[np.cos(orientation.x * -np.pi/2.0), 0, -np.sin(orientation.x * -np.pi/2.0)],
+                      [0, 1, 0],
+                      [np.sin(orientation.x * -np.pi/2.0), 0, np.cos(orientation.x * -np.pi/2.0)]])
+            #rotates target along the x axis, ie user leans forward or back
+            xRotMat = np.array([[1, 0, 0],
+                      [0, np.cos(orientation.y * np.pi/2.0), np.sin(orientation.y * np.pi/2.0)],
+                      [0, -np.sin(orientation.y * np.pi/2.0), np.cos(orientation.y * np.pi/2.0)]])
+            #determines target position based on limb length
+            if targ.calc_len:
+                mag = (player[targ.middle_joint] - player[targ.base_joint]).magnitude()
+                mag += (player[targ.hit_joint] - player[targ.middle_joint]).magnitude()
+                targ.point.normalize()
+                targPoint = [targ.point.x * mag,  targ.point.y * mag, targ.point.z * mag]
             else:
-                glPushMatrix()
-                #rotates target along the y axis, ie user turns side to side
-                yRotMat = np.array([[np.cos(orientation.x * -np.pi/2.0), 0, -np.sin(orientation.x * -np.pi/2.0)],
-                          [0, 1, 0],
-                          [np.sin(orientation.x * -np.pi/2.0), 0, np.cos(orientation.x * -np.pi/2.0)]])
-                #rotates target along the x axis, ie user leans forward or back
-                xRotMat = np.array([[1, 0, 0],
-                          [0, np.cos(orientation.y * np.pi/2.0), np.sin(orientation.y * np.pi/2.0)],
-                          [0, -np.sin(orientation.y * np.pi/2.0), np.cos(orientation.y * np.pi/2.0)]])
-                if targ.calc_len:
-                    mag = (player[targ.middle_joint] - player[targ.base_joint]).magnitude()
-                    mag += (player[targ.hit_joint] - player[targ.middle_joint]).magnitude()
-                    targ.point.normalize()
-                    targPoint = [targ.point.x * mag,  targ.point.y * mag, targ.point.z * mag]
-                else:
-                    targPoint = targ.point.vals()
-                targPoint = np.dot(yRotMat, targPoint)
-                targPoint = np.dot(xRotMat, targPoint)
-                targPoint = Point(targPoint[0], targPoint[1], targPoint[2])
-                targPoint += player[targ.base_joint]
-                glTranslate(targPoint.x, targPoint.y, targPoint.z)
-                ht = player[targ.hit_joint] - targPoint
-                if abs(ht.x) < TARGET_SIZE and abs(ht.y) < TARGET_SIZE and abs(ht.z) < TARGET_SIZE:
-                    r, g, b = (1, 1, 1)
-                    hits += 1
-                else:
-                    r, g, b = getRGB(targPoint)
-                glRotatef(orientation.x * 90, 0, 1, 0)
-                glRotatef(orientation.y * -90, 1, 0, 0)
-                glColor3f(r, g, b)
-                glutSolidCube(TARGET_SIZE)
-                glColor3f(0, 0, 0)
-                glutWireCube(TARGET_SIZE + 1)
-                glPopMatrix()        
+                targPoint = targ.point.vals()
+            targPoint = np.dot(yRotMat, targPoint)
+            targPoint = np.dot(xRotMat, targPoint)
+            targPoint = Point(targPoint[0], targPoint[1], targPoint[2])
+            targPoint += player[targ.base_joint]
+            glTranslate(targPoint.x, targPoint.y, targPoint.z)
+            #target is hit if hit_joint is inside target
+            ht = player[targ.hit_joint] - targPoint
+            if abs(ht.x) < TARGET_SIZE and abs(ht.y) < TARGET_SIZE and abs(ht.z) < TARGET_SIZE:
+                r, g, b = (1, 1, 1)
+                hits += 1
+            else:
+                r, g, b = getRGB(targPoint)
+            glRotatef(orientation.x * 90, 0, 1, 0)
+            glRotatef(orientation.y * -90, 1, 0, 0)
+            glColor3f(r, g, b)
+            glutSolidCube(TARGET_SIZE)
+            glColor3f(0, 0, 0)
+            glutWireCube(TARGET_SIZE + 1)
+            glPopMatrix()        
     
 def drawPlayersOrientation():
     """Determines and draws a users orientation.
@@ -272,4 +266,3 @@ if __name__ == "__main__":
     glLineWidth(5)
     glutMainLoop()
 
-                
