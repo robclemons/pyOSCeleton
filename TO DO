@@ -1,7 +1,7 @@
 exercise.py:
 DONE-color stick figure's lines based on depth(aid in seeing depth)
-PARTIALLY IMPLEMENTED-add targets to hit/reach
--store/load target locations
+DONE-add targets to hit/reach
+PARTIAL-store/load target locations
 -add calibration
 
 OSCeleton.py:
