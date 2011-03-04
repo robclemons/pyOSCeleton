@@ -28,18 +28,20 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 import time
+import sys
+from ConfigParser import SafeConfigParser
+import numpy as np
 from OpenGL.GL import *
 from OpenGL.GLUT import *
 from OpenGL.GLU import *
 from OSCeleton import *
-import numpy as np
 
 SIZE_X = 640
 SIZE_Y = 480
 TARGET_SIZE = 60
 
 #moves target
-targets = []
+users_targets = []
 
 server = OSCeleton(7110)
 server.real_world = True
@@ -49,12 +51,38 @@ hits = 0
 orientation = Point(0,0,0)
 start = 0.0
 
+class Target(Point):
+    """Stores target information"""
+    def __init__(self):
+        self.point = Point(0,0,0)
+        self.base_joint = ""
+        self.middle_joint = ""
+        self.hit_joint = ""
+        self.calc_len = False
+
 def cross(p1, p2):
     """Determines the cross product of two vectors"""
     x = p1.y * p2.z - p1.z * p2.y
     y = p1.z * p2.x - p1.x * p2.z
     z = p1.x * p2.y - p1.y * p2.x
     return Point(x, y, z)
+    
+def getTargets(iniFile):
+    global users_targets
+    parser = SafeConfigParser()
+    parser.read(iniFile)
+    for section in parser.sections():
+        t = Target()
+        x = parser.getfloat(section, 'x')
+        y = parser.getfloat(section, 'y')
+        z = parser.getfloat(section, 'z')
+        t.point = Point(x, y, z)
+        t.base_joint = parser.get(section, 'base_joint')
+        t.middle_joint = parser.get(section, 'middle_joint')
+        t.hit_joint = parser.get(section, 'hit_joint')
+        if parser.has_option(section, 'calc_len'):
+            t.calc_len = parser.getboolean(section, 'calc_len')
+        users_targets.append(t)
     
 def getRGB(joint, color_range = 600):
     """Returns a tuple with r, g and b color values based on joint's Z.
@@ -104,7 +132,7 @@ def glutIdle():
     Catches server events, adds and removes users and loads newest Skeletons"""
     global frame_count, users, start
     server.run()
-    if len(targets) == 0 and server.frames == 30:
+    if len(users_targets) == 0 and server.frames == 30:
         start = time.time()
     if server.frames > frame_count or server.lost_user:
         lost_users = set(users.keys()) - set(server.get_users())
@@ -139,12 +167,13 @@ def drawPlayers():
     
 def drawTarget():
     """Draw a target changing its' position each time it's hit"""
-    global hits, targets, start
+    global hits, start
+    targ = users_targets[hits % len(users_targets)]
     glMatrixMode(GL_MODELVIEW)
     glLineWidth(1)
     for player in users.values():
-        if (RIGHT_SHOULDER, RIGHT_HAND) in player:
-            if len(targets) < 3:
+        if (targ.base_joint, targ.middle_joint, targ.hit_joint) in player:
+            if len(users_targets) < 0:
                 if time.time() - start > 5:
                     targets.append(player[RIGHT_HAND] - player[RIGHT_SHOULDER])
                     start = time.time()
@@ -152,7 +181,6 @@ def drawTarget():
                     print time.time() - start
             else:
                 glPushMatrix()
-                trgt = targets[hits % len(targets)].copy()
                 #rotates target along the y axis, ie user turns side to side
                 yRotMat = np.array([[np.cos(orientation.x * -np.pi/2.0), 0, -np.sin(orientation.x * -np.pi/2.0)],
                           [0, 1, 0],
@@ -161,17 +189,24 @@ def drawTarget():
                 xRotMat = np.array([[1, 0, 0],
                           [0, np.cos(orientation.y * np.pi/2.0), np.sin(orientation.y * np.pi/2.0)],
                           [0, -np.sin(orientation.y * np.pi/2.0), np.cos(orientation.y * np.pi/2.0)]])
-                trgt = np.dot(yRotMat, [trgt.x, trgt.y, trgt.z])
-                trgt = np.dot(xRotMat, trgt)
-                trgt = Point(trgt[0], trgt[1], trgt[2])
-                trgt += player[RIGHT_SHOULDER]
-                glTranslate(trgt.x, trgt.y, trgt.z)
-                ht = player[RIGHT_HAND] - trgt
+                if targ.calc_len:
+                    mag = (player[targ.middle_joint] - player[targ.base_joint]).magnitude()
+                    mag += (player[targ.hit_joint] - player[targ.middle_joint]).magnitude()
+                    targ.point.normalize()
+                    targPoint = [targ.point.x * mag,  targ.point.y * mag, targ.point.z * mag]
+                else:
+                    targPoint = targ.point.vals()
+                targPoint = np.dot(yRotMat, targPoint)
+                targPoint = np.dot(xRotMat, targPoint)
+                targPoint = Point(targPoint[0], targPoint[1], targPoint[2])
+                targPoint += player[targ.base_joint]
+                glTranslate(targPoint.x, targPoint.y, targPoint.z)
+                ht = player[targ.hit_joint] - targPoint
                 if abs(ht.x) < TARGET_SIZE and abs(ht.y) < TARGET_SIZE and abs(ht.z) < TARGET_SIZE:
                     r, g, b = (1, 1, 1)
                     hits += 1
                 else:
-                    r, g, b = getRGB(trgt)
+                    r, g, b = getRGB(targPoint)
                 glRotatef(orientation.x * 90, 0, 1, 0)
                 glRotatef(orientation.y * -90, 1, 0, 0)
                 glColor3f(r, g, b)
@@ -221,6 +256,11 @@ def glutDisplay():
     glutSwapBuffers()
     
 if __name__ == "__main__":
+    if len(sys.argv) > 1:
+        iniFile = sys.argv[1]
+    else:
+        iniFile = "generic.ini"
+    getTargets(iniFile)
     glutInit(sys.argv)
     glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH)
     glutInitWindowSize(SIZE_X, SIZE_Y)

@@ -1,8 +1,9 @@
 exercise.py:
 DONE-color stick figure's lines based on depth(aid in seeing depth)
 PARTIALLY IMPLEMENTED-add targets to hit/reach
+-store/load target locations
 -add calibration
 
 OSCeleton.py:
-DONE-support multiple users
--maybe use threading with some callback whenever a frame is ready?
+BUGGY-support multiple users
+PERFORMANCE IS WORSE-maybe use threading with some callback whenever a frame is ready?

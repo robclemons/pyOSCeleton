@@ -70,7 +70,7 @@ class Point(object):
         self.y = y
         self.z = z
         
-    def __str__(self):
+    def __repr__(self):
         """Return a string in the format (x, y, z)"""
         s = "(%f, %f, %f)" % (self.x, self.y, self.z)
         return s
@@ -98,6 +98,9 @@ class Point(object):
     
     def copy(self):
         return Point(self.x, self.y, self.z)
+        
+    def vals(self):
+        return [self.x, self.y, self.z]
         
     def magnitude(self):
         """Calculate vector magnitude of Point"""
