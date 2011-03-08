@@ -47,12 +47,14 @@ users = {}
 
 class Target(Point):
     """Stores target information"""
-    def __init__(self):
-        self.point = Point(0,0,0)
+    def __init__(self, x, y, z):
         self.base_joint = ""
         self.middle_joint = ""
         self.hit_joint = ""
         self.calc_len = False
+        self.x = x
+        self.y = y
+        self.z = z
 
 def cross(p1, p2):
     """Determines the cross product of two vectors"""
@@ -69,11 +71,10 @@ def getTargets(iniFile):
     targ_list = parser.sections()
     targ_list.sort()
     for section in targ_list:
-        t = Target()
         x = parser.getfloat(section, 'x')
         y = parser.getfloat(section, 'y')
         z = parser.getfloat(section, 'z')
-        t.point = Point(x, y, z)
+        t = Target(x, y, z)
         t.base_joint = parser.get(section, 'base_joint')
         t.middle_joint = parser.get(section, 'middle_joint')
         t.hit_joint = parser.get(section, 'hit_joint')
@@ -188,13 +189,13 @@ def drawTarget():
             if targ.calc_len:
                 mag = (player[targ.middle_joint] - player[targ.base_joint]).magnitude()
                 mag += (player[targ.hit_joint] - player[targ.middle_joint]).magnitude()
-                targ.point.normalize()
-                targPoint = [targ.point.x * mag,  targ.point.y * mag, targ.point.z * mag]
+                targ.normalize()
+                targList = [targ.x * mag,  targ.y * mag, targ.z * mag]
             else:
-                targPoint = targ.point.vals()
-            targPoint = np.dot(yRotMat, targPoint)
-            targPoint = np.dot(xRotMat, targPoint)
-            targPoint = Point(targPoint[0], targPoint[1], targPoint[2])
+                targList = targ.vals()
+            targList = np.dot(yRotMat, targList)
+            targList = np.dot(xRotMat, targList)
+            targPoint = Point(targList[0], targList[1], targList[2])
             targPoint += player[targ.base_joint]
             glTranslate(targPoint.x, targPoint.y, targPoint.z)
             #target is hit if hit_joint is inside target
