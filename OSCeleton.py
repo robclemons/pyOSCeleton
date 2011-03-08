@@ -109,13 +109,12 @@ class Point(object):
         return sqrt(self.x ** 2 + self.y ** 2 + self.z ** 2)
             
     def normalize(self):
-        """Normalize Point's x, y and z coordinates"""
+        """Normalize Point's x, y and z coordinates in place"""
         mag = self.magnitude()
         self.x = self.x / mag
         self.y = self.y / mag
         self.z = self.z / mag
 
-#mostly useless class, it's only purpose is overloading __contains__ 
 class Skeleton:
     """Holds a user's joint positions
     
@@ -142,18 +141,21 @@ class Skeleton:
         
         Usage:
         
-        >>>if [HEAD, NECK] in skeleton:
+        >>>if (HEAD, NECK) in skeleton:
         >>>    print "skeleton contains HEAD and NECK"
         """
         return set(wanted) <= set(self.joints)
         
     def __setitem__(self, key, value):
+        """Maps to Skeleton.joints"""
         self.joints[key] = value
         
     def __getitem__(self, key):
+        """Maps to Skeleton.joints"""
         return self.joints[key]
         
     def clear(self):
+        """Maps to Skeleton.joints"""
         self.joints.clear()
 
 class OSCeleton:
@@ -206,6 +208,7 @@ class OSCeleton:
             pass
         
     def new_skeleton_callback(self, path, args, types, src):
+        """Prints that a new skeleton is being tracked"""
         print "Calibration complete, now tracking User %d" % args[0]
         
     def joint_callback(self, path, args, types, src):
