@@ -66,7 +66,9 @@ def getTargets(iniFile):
     global users_targets
     parser = SafeConfigParser()
     parser.read(iniFile)
-    for section in parser.sections():
+    targ_list = parser.sections()
+    targ_list.sort()
+    for section in targ_list:
         t = Target()
         x = parser.getfloat(section, 'x')
         y = parser.getfloat(section, 'y')
