@@ -122,8 +122,6 @@ class Skeleton:
     and its' values are the joint's Point.
     
     Skeleton.id is the user's number    
-    
-    Skeleton.hits is a counter for a developer to use as they see fit.
     """
     
     joints = {}
