@@ -44,6 +44,7 @@ server = OSCeleton(7110)
 server.real_world = True
 frame_count = 0
 users = {}
+hits = {}
 
 class Target(Point):
     """Stores target information"""
@@ -134,12 +135,15 @@ def glutIdle():
         lost_users = set(users.keys()) - set(server.get_users())
         for each in lost_users:
             del users[each]
+            del hits[each]
             glutPostRedisplay()
         server.lost_user = False
         for player in server.get_skeletons():
-             users[player.id] = player
-             frame_count = server.frames
-             glutPostRedisplay()
+            users[player.id] = player
+            if player.id not in hits.keys():
+                hits[player.id] = 0   
+            frame_count = server.frames
+            glutPostRedisplay()
                 
 def drawPlayers():
     """Draws lines connecting available joints for every player in users"""
@@ -166,7 +170,7 @@ def drawTarget():
     glMatrixMode(GL_MODELVIEW)
     glLineWidth(1)
     for player in users.values():
-        targ = users_targets[player.hits % len(users_targets)]
+        targ = users_targets[hits[player.id] % len(users_targets)]
         if (targ.base_joint, targ.middle_joint, targ.hit_joint) in player:
             orientation = getPlayersOrientation(player)
             #draws a sphere on the joint the player has to use
@@ -202,7 +206,7 @@ def drawTarget():
             ht = player[targ.hit_joint] - targPoint
             if abs(ht.x) < TARGET_SIZE and abs(ht.y) < TARGET_SIZE and abs(ht.z) < TARGET_SIZE:
                 r, g, b = (1, 1, 1)
-                player.hits += 1
+                hits[player.id] += 1
             else:
                 r, g, b = getRGB(targPoint)
             glRotatef(orientation.x * 90, 0, 1, 0)

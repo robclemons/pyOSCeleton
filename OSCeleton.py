@@ -134,7 +134,6 @@ class Skeleton:
         Requires the user's number
         """
         self.id = user
-        self.hits = 0
                         
     def __contains__(self, wanted):
         """Test whether Skeleton.joints contains everything passed to it.
@@ -153,6 +152,12 @@ class Skeleton:
     def __getitem__(self, key):
         """Maps to Skeleton.joints"""
         return self.joints[key]
+        
+    def copy(self):
+        """Returns a new Skeleton with the same data"""
+        skel = Skeleton(self.id)
+        skel.joints = self.joints.copy()
+        return skel
         
     def clear(self):
         """Maps to Skeleton.joints"""
@@ -218,7 +223,7 @@ class OSCeleton:
             self._users[args[1]] = Skeleton(args[1])
         #start a new frame and save the old one in users if we already have joint
         if str(args[0]) in self._users[args[1]].joints:
-            self.users[args[1]] = self._users[args[1]]
+            self.users[args[1]] = self._users[args[1]].copy()
             self._users[args[1]].clear()
             self.frames += 1
         #convert to mm in real world measurements
