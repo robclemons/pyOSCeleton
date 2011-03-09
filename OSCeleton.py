@@ -172,8 +172,7 @@ class OSCeleton:
     OSCeleton.frames is a counter that is incremented every time all of a user's
     recognized joints have been received by the server.
     
-    OSCeleton.lost_user is a flag that is set to True whenever the server
-    receives a message claiming that the user is no longer seen.
+    OSCeleton.lost_users is a list containing recently lost users.
     """
     
     users = {}
@@ -239,15 +238,12 @@ class OSCeleton:
         return self._users.keys()
         
     def get_new_skeletons(self):
-        """Return a list of skeletons"""
+        """Return a list of new skeletons"""
         tmp = self.users.values()
         self.users.clear()
         return tmp
         
-    def run(self, timeout = 100):
-        """Wait for and catch event.
-        
-        Accepts optional timeout argument.        
-        """
-        self.server.recv(timeout)
+    def run(self):
+        """Wait until catch event"""
+        self.server.recv()
 
