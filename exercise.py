@@ -139,7 +139,7 @@ def glutIdle():
             glutPostRedisplay()
         server.lost_user = False
         for player in server.get_skeletons():
-            users[player.id] = player
+            users[player.id] = player.copy()
             if player.id not in hits.keys():
                 hits[player.id] = 0   
             frame_count = server.frames
