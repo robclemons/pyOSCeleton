@@ -29,6 +29,7 @@
 
 import sys
 from ConfigParser import SafeConfigParser
+from collections import deque
 import numpy as np
 from OpenGL.GL import *
 from OpenGL.GLUT import *
@@ -44,18 +45,33 @@ server = OSCeleton(7110)
 server.real_world = True
 frame_count = 0
 users = {}
-hits = {}
 
+class Player(Skeleton):
+    
+    def __init__(self, user_id):
+        Skeleton.__init__(self, user_id)
+        self.hits = 0
+        self.history = deque(maxlen = 10)
+        self.old_frames = 0
+    
+    def add_frame(self, skel):
+        if len(self.joints) > 0:
+            self.history.append(self.joints)
+            self.joints.clear()
+        for joint_name, pnt  in skel.joints.items():
+            self[joint_name] = pnt.copy()
+    
+    def still_moving(self):
+        return self.joints != history[0]
+        
 class Target(Point):
     """Stores target information"""
     def __init__(self, x, y, z):
+        Point.__init__(self, x, y, z)
         self.base_joint = ""
         self.middle_joint = ""
         self.hit_joint = ""
         self.calc_len = False
-        self.x = x
-        self.y = y
-        self.z = z
 
 def cross(p1, p2):
     """Determines the cross product of two vectors"""
@@ -131,19 +147,25 @@ def glutIdle():
     Catches server events, adds and removes users and loads newest Skeletons"""
     global frame_count, users
     server.run()
-    if server.frames > frame_count or server.lost_user:
-        lost_users = set(users.keys()) - set(server.get_users())
-        for each in lost_users:
-            del users[each]
-            del hits[each]
-            glutPostRedisplay()
-        server.lost_user = False
-        for player in server.get_skeletons():
-            users[player.id] = player.copy()
-            if player.id not in hits.keys():
-                hits[player.id] = 0   
-            frame_count = server.frames
-            glutPostRedisplay()
+    if server.frames > frame_count or server.lost_users:
+        if server.lost_users:
+            try:
+                for each in server.lost_users:
+                    del users[each]
+                    glutPostRedisplay()
+            except KeyError:
+                pass
+            del server.lost_users[:]
+        for player in server.get_new_skeletons():
+            if player.id not in users:
+                users[player.id] = Player(player.id)
+            if users[player.id].joints != player.joints:
+                users[player.id].add_frame(player) 
+                frame_count = server.frames
+                glutPostRedisplay()
+                users[player.id].old_frames = 0
+            else:
+                users[player.id].old_frames += 1
                 
 def drawPlayers():
     """Draws lines connecting available joints for every player in users"""
@@ -170,7 +192,7 @@ def drawTarget():
     glMatrixMode(GL_MODELVIEW)
     glLineWidth(1)
     for player in users.values():
-        targ = users_targets[hits[player.id] % len(users_targets)]
+        targ = users_targets[player.hits % len(users_targets)]
         if (targ.base_joint, targ.middle_joint, targ.hit_joint) in player:
             orientation = getPlayersOrientation(player)
             #draws a sphere on the joint the player has to use
@@ -206,7 +228,7 @@ def drawTarget():
             ht = player[targ.hit_joint] - targPoint
             if abs(ht.x) < TARGET_SIZE and abs(ht.y) < TARGET_SIZE and abs(ht.z) < TARGET_SIZE:
                 r, g, b = (1, 1, 1)
-                hits[player.id] += 1
+                player.hits += 1
             else:
                 r, g, b = getRGB(targPoint)
             glRotatef(orientation.x * 90, 0, 1, 0)

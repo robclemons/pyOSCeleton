@@ -179,7 +179,7 @@ class OSCeleton:
     users = {}
     _users = {}
     frames = 0
-    lost_user = False
+    lost_users = []
     real_world = False
     
     def __init__(self, port = 7110):
@@ -204,9 +204,9 @@ class OSCeleton:
         """Remove user"""
         print "User %d has been lost" % args[0]
         try:
-            del self.users[args[0]]
             del self._users[args[0]]
-            self.lost_user = True
+            self.lost_users.append(args[0])
+            del self.users[args[0]]
         except KeyError:
             pass
         
@@ -236,11 +236,13 @@ class OSCeleton:
         
     def get_users(self):
         """Return a list of users"""
-        return self.users.keys()
+        return self._users.keys()
         
-    def get_skeletons(self):
+    def get_new_skeletons(self):
         """Return a list of skeletons"""
-        return self.users.values()
+        tmp = self.users.values()
+        self.users.clear()
+        return tmp
         
     def run(self, timeout = 100):
         """Wait for and catch event.
