@@ -124,15 +124,14 @@ class Skeleton:
     Skeleton.id is the user's number    
     """
     
-    joints = {}
-    
     def __init__(self, user):
         """Initialize Skeleton.
         
         Requires the user's number
         """
         self.id = user
-                        
+        self.joints = {}
+                      
     def __contains__(self, wanted):
         """Test whether Skeleton.joints contains everything passed to it.
         
@@ -154,7 +153,8 @@ class Skeleton:
     def copy(self):
         """Returns a new Skeleton with the same data"""
         skel = Skeleton(self.id)
-        skel.joints = self.joints.copy()
+        for joint_name, pnt  in self.joints.items():
+            skel[joint_name] = pnt.copy()
         return skel
         
     def clear(self):
