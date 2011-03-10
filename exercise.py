@@ -158,13 +158,9 @@ def glutIdle():
         for player in server.get_new_skeletons():
             if player.id not in users:
                 users[player.id] = Player(player.id)
-            if users[player.id].joints != player.joints:
-                users[player.id].joints = player.joints 
-                frame_count = server.frames
-                glutPostRedisplay()
-                users[player.id].old = 0
-            else:
-                users[player.id].old += 1
+            users[player.id].joints = player.copy_joints()
+            frame_count = server.frames
+            glutPostRedisplay()
                 
 def drawPlayers():
     """Draws lines connecting available joints for every player in users"""

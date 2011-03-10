@@ -150,12 +150,12 @@ class Skeleton:
         """Maps to Skeleton.joints"""
         return self.joints[key]
         
-    def copy(self):
-        """Returns a new Skeleton with the same data"""
-        skel = Skeleton(self.id)
+    def copy_joints(self):
+        """Returns a new dictionary with the same joints data"""
+        joints = {}
         for joint_name, pnt  in self.joints.items():
-            skel[joint_name] = pnt.copy()
-        return skel
+            joints[joint_name] = pnt.copy()
+        return joints
         
     def clear(self):
         """Maps to Skeleton.joints"""
@@ -220,7 +220,9 @@ class OSCeleton:
             self._users[args[1]] = Skeleton(args[1])
         #start a new frame and save the old one in users if we already have joint
         if str(args[0]) in self._users[args[1]].joints:
-            self.users[args[1]] = self._users[args[1]].copy()
+            if args[1] not in self.users:
+                self.users[args[1]] = Skeleton(args[1])
+            self.users[args[1]].joints = self._users[args[1]].copy_joints()
             self._users[args[1]].clear()
             self.frames += 1
         #convert to mm in real world measurements
@@ -243,7 +245,10 @@ class OSCeleton:
         self.users.clear()
         return tmp
         
-    def run(self):
-        """Wait until catch event"""
-        self.server.recv()
+    def run(self, timeout = 100):
+        """Wait for and catch event
+        
+        Accepts optional timeout argument.
+        """
+        self.server.recv(timeout)
 
