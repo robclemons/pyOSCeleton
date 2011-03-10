@@ -28,6 +28,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 import sys
+import time
 from ConfigParser import SafeConfigParser
 from collections import deque
 import numpy as np
@@ -39,29 +40,30 @@ from OSCeleton import *
 SIZE_X = 640
 SIZE_Y = 480
 TARGET_SIZE = 60
-
+REMOVE_AFTER = 2
 users_targets = []
 server = OSCeleton(7110)
 server.real_world = True
 frame_count = 0
 users = {}
+last_displayed = 0.0
 
 class Player(Skeleton):
-    """Holds a players data.  Inherits from Skeleton
+    """Holds a players data.  Inherits from Skeleton.
     
-    Player.hits is a counter for the number of targets a player hits
+    Player.hits is a counter for the number of targets this player hits.
     
-    Player.old is a counter for the number of frames without a player
+    Player.last is the time at which this player's joints were updated. 
     """
     
     def __init__(self, user_id):
         Skeleton.__init__(self, user_id)
         self.hits = 0
-        self.old = 0
+        self.last = 0.0
         
     def still_moving(self):
         """Tests whether the Player's joints have been updated recently"""
-        return self.old < len(users) * 2
+        return time.time() - self.last < REMOVE_AFTER
         
 class Target(Point):
     """Stores target information"""
@@ -71,7 +73,7 @@ class Target(Point):
         self.middle_joint = ""
         self.hit_joint = ""
         self.calc_len = False
-
+        
 def cross(p1, p2):
     """Determines the cross product of two vectors"""
     x = p1.y * p2.z - p1.z * p2.y
@@ -159,9 +161,12 @@ def glutIdle():
             if player.id not in users:
                 users[player.id] = Player(player.id)
             users[player.id].joints = player.copy_joints()
+            users[player.id].last = time.time()
             frame_count = server.frames
             glutPostRedisplay()
-                
+    elif time.time() - last_displayed > REMOVE_AFTER:
+        glutPostRedisplay()
+        
 def drawPlayers():
     """Draws lines connecting available joints for every player in users"""
     glBegin(GL_LINES)
@@ -259,6 +264,8 @@ def getPlayersOrientation(player):
     
 def glutDisplay():
     """Registered as GlutDisplayFunc.  Calls all drawing functions"""
+    global last_displayed
+    last_displayed = time.time()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
     glMatrixMode(GL_PROJECTION)
     glShadeModel(GL_SMOOTH)
