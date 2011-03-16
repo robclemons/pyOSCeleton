@@ -5,5 +5,5 @@ PARTIAL-store/load target locations
 -add calibration
 
 OSCeleton.py:
-BUGGY-support multiple users
+Seems to be working -support multiple users
 PERFORMANCE IS WORSE-maybe use threading with some callback whenever a frame is ready?

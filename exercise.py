@@ -41,12 +41,12 @@ SIZE_X = 640
 SIZE_Y = 480
 TARGET_SIZE = 60
 REMOVE_AFTER = 2
-users_targets = []
+usersTargets = []
 server = OSCeleton(7110)
-server.real_world = True
-frame_count = 0
+server.realWorld = True
+frameCount = 0
 users = {}
-last_displayed = 0.0
+lastDisplayed = 0.0
 
 class Player(Skeleton):
     """Holds a players data.  Inherits from Skeleton.
@@ -69,10 +69,10 @@ class Target(Point):
     """Stores target information"""
     def __init__(self, x, y, z):
         Point.__init__(self, x, y, z)
-        self.base_joint = ""
-        self.middle_joint = ""
-        self.hit_joint = ""
-        self.calc_len = False
+        self.baseJoint = ""
+        self.middleJoint = ""
+        self.hitJoint = ""
+        self.calcLen = False
         
 def cross(p1, p2):
     """Determines the cross product of two vectors"""
@@ -83,58 +83,58 @@ def cross(p1, p2):
     
 def getTargets(iniFile):
     """Parses ini file and adds the targets found in the file to users_targets"""
-    global users_targets
+    global usersTargets
     parser = SafeConfigParser()
     parser.read(iniFile)
-    targ_list = parser.sections()
-    targ_list.sort()
-    for section in targ_list:
+    targList = parser.sections()
+    targList.sort()
+    for section in targList:
         x = parser.getfloat(section, 'x')
         y = parser.getfloat(section, 'y')
         z = parser.getfloat(section, 'z')
         t = Target(x, y, z)
-        t.base_joint = parser.get(section, 'base_joint')
-        t.middle_joint = parser.get(section, 'middle_joint')
-        t.hit_joint = parser.get(section, 'hit_joint')
-        if parser.has_option(section, 'calc_len'):
-            t.calc_len = parser.getboolean(section, 'calc_len')
-        users_targets.append(t)
+        t.baseJoint = parser.get(section, 'baseJoint')
+        t.middleJoint = parser.get(section, 'middleJoint')
+        t.hitJoint = parser.get(section, 'hitJoint')
+        if parser.has_option(section, 'calcLen'):
+            t.calcLen = parser.getboolean(section, 'calcLen')
+        usersTargets.append(t)
     
-def getRGB(joint, color_range = 600):
+def getRGB(joint, colorRange = 600):
     """Returns a tuple with r, g and b color values based on joint's Z.
     
     Ugly but does the job, needs to be completely rewritten"""
     z = joint.z
-    z = z % color_range #smaller range gives more noticeable transitions
-    sub_interval = color_range / 6.0
+    z = z % colorRange #smaller range gives more noticeable transitions
+    subInterval = colorRange / 6.0
     rgb = [0, 0, 0]
-    if z < sub_interval:
+    if z < subInterval:
         rgb[0] = 1.0
-        rgb[1] = z / sub_interval
-    elif z < 2 * sub_interval:
+        rgb[1] = z / subInterval
+    elif z < 2 * subInterval:
         rgb[1] = 1.0
-        rgb[0] = (2 * sub_interval - z) / sub_interval
-    elif z < 3 * sub_interval:
+        rgb[0] = (2 * subInterval - z) / subInterval
+    elif z < 3 * subInterval:
         rgb[1] = 1.0
-        rgb[2] = (z - 2 * sub_interval) / sub_interval
-    elif z < 4 * sub_interval:
+        rgb[2] = (z - 2 * subInterval) / subInterval
+    elif z < 4 * subInterval:
         rgb[2] = 1.0
-        rgb[1] = (4 * sub_interval - z) / sub_interval
-    elif z < 5 * sub_interval:
+        rgb[1] = (4 * subInterval - z) / subInterval
+    elif z < 5 * subInterval:
         rgb[2] = 1.0
-        rgb[0] = (z - 4 * sub_interval) / sub_interval
+        rgb[0] = (z - 4 * subInterval) / subInterval
     else:
         rgb[0] = 1
-        rgb[2] = (color_range - z) / sub_interval
+        rgb[2] = (colorRange - z) / subInterval
     return tuple(rgb)
 
-def drawLine(player, joint_label1, joint_label2):
+def drawLine(player, jointLabel1, jointLabel2):
     """Accepts a skeleton and two joint labels.
     
     Draws a colored line between the skeleton's two joints that have the desired labels"""
-    if (joint_label1, joint_label2) in player:
-        joint1 = player[joint_label1]
-        joint2 = player[joint_label2]
+    if (jointLabel1, jointLabel2) in player:
+        joint1 = player[jointLabel1]
+        joint2 = player[jointLabel2]
         r, g, b = getRGB(joint1)
         glColor3f(r, g, b)
         glVertex3f(joint1.x, joint1.y, joint1.z)
@@ -146,25 +146,25 @@ def glutIdle():
     """Registered as GlutIdleFunc.
     
     Catches server events, adds and removes users and loads newest Skeletons"""
-    global frame_count, users
+    global frameCount, users
     server.run()
-    if server.frames > frame_count or server.lost_users:
-        if server.lost_users:
+    if server.frames > frameCount or server.lostUsers:
+        if server.lostUsers:
             try:
-                for each in server.lost_users:
+                for each in server.lostUsers:
                     del users[each]
                     glutPostRedisplay()
             except KeyError:
                 pass
-            del server.lost_users[:]
+            del server.lostUsers[:]
         for player in server.get_new_skeletons():
             if player.id not in users:
                 users[player.id] = Player(player.id)
             users[player.id].joints = player.copy_joints()
             users[player.id].last = time.time()
-            frame_count = server.frames
+            frameCount = server.frames
             glutPostRedisplay()
-    elif time.time() - last_displayed > REMOVE_AFTER:
+    elif time.time() - lastDisplayed > REMOVE_AFTER:
         glutPostRedisplay()
         
 def drawPlayers():
@@ -194,12 +194,12 @@ def drawTarget():
     glLineWidth(1)
     for player in users.values():
         if player.still_moving():
-            targ = users_targets[player.hits % len(users_targets)]
-            if (targ.base_joint, targ.middle_joint, targ.hit_joint) in player:
+            targ = usersTargets[player.hits % len(usersTargets)]
+            if (targ.baseJoint, targ.middleJoint, targ.hitJoint) in player:
                 orientation = getPlayersOrientation(player)
                 #draws a sphere on the joint the player has to use
                 glPushMatrix()
-                ball = player[targ.hit_joint]
+                ball = player[targ.hitJoint]
                 glTranslate(ball.x, ball.y, ball.z)
                 glColor3f(1, 1, 1)
                 glutSolidSphere(TARGET_SIZE/ 2.0, 30, 30)
@@ -214,9 +214,9 @@ def drawTarget():
                           [0, np.cos(orientation.y * np.pi/2.0), np.sin(orientation.y * np.pi/2.0)],
                           [0, -np.sin(orientation.y * np.pi/2.0), np.cos(orientation.y * np.pi/2.0)]])
                 #determines target position based on limb length
-                if targ.calc_len:
-                    mag = (player[targ.middle_joint] - player[targ.base_joint]).magnitude()
-                    mag += (player[targ.hit_joint] - player[targ.middle_joint]).magnitude()
+                if targ.calcLen:
+                    mag = (player[targ.middleJoint] - player[targ.baseJoint]).magnitude()
+                    mag += (player[targ.hitJoint] - player[targ.middleJoint]).magnitude()
                     targ.normalize()
                     targList = [targ.x * mag,  targ.y * mag, targ.z * mag]
                 else:
@@ -224,10 +224,10 @@ def drawTarget():
                 targList = np.dot(yRotMat, targList)
                 targList = np.dot(xRotMat, targList)
                 targPoint = Point(targList[0], targList[1], targList[2])
-                targPoint += player[targ.base_joint]
+                targPoint += player[targ.baseJoint]
                 glTranslate(targPoint.x, targPoint.y, targPoint.z)
                 #target is hit if hit_joint is inside target
-                ht = player[targ.hit_joint] - targPoint
+                ht = player[targ.hitJoint] - targPoint
                 if abs(ht.x) < TARGET_SIZE and abs(ht.y) < TARGET_SIZE and abs(ht.z) < TARGET_SIZE:
                     r, g, b = (1, 1, 1)
                     player.hits += 1
@@ -250,7 +250,6 @@ def getPlayersOrientation(player):
     and then cross multiplies those vectors to find a vector perpindicular to both"""
     if (TORSO, LEFT_SHOULDER, RIGHT_SHOULDER) in player:
         torso = player[TORSO]
-        l_shoulder = player[LEFT_SHOULDER]
         tl = player[LEFT_SHOULDER] - player[TORSO]
         tr = player[RIGHT_SHOULDER] - player[TORSO]
         tl.normalize()
@@ -265,7 +264,7 @@ def getPlayersOrientation(player):
 def glutDisplay():
     """Registered as GlutDisplayFunc.  Calls all drawing functions"""
     global last_displayed
-    last_displayed = time.time()
+    lastDisplayed = time.time()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
     glMatrixMode(GL_PROJECTION)
     glShadeModel(GL_SMOOTH)

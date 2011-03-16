@@ -153,8 +153,8 @@ class Skeleton:
     def copy_joints(self):
         """Returns a new dictionary with the same joints data"""
         joints = {}
-        for joint_name, pnt  in self.joints.items():
-            joints[joint_name] = pnt.copy()
+        for jointName, pnt  in self.joints.items():
+            joints[jointName] = pnt.copy()
         return joints
         
     def clear(self):
@@ -178,8 +178,8 @@ class OSCeleton:
     users = {}
     _users = {}
     frames = 0
-    lost_users = []
-    real_world = False
+    lostUsers = []
+    realWorld = False
     
     def __init__(self, port = 7110):
         """Initialize OSCeleton.
@@ -204,7 +204,7 @@ class OSCeleton:
         print "User %d has been lost" % args[0]
         try:
             del self._users[args[0]]
-            self.lost_users.append(args[0])
+            self.lostUsers.append(args[0])
             del self.users[args[0]]
         except KeyError:
             pass
@@ -226,7 +226,7 @@ class OSCeleton:
             self._users[args[1]].clear()
             self.frames += 1
         #convert to mm in real world measurements
-        if self.real_world:
+        if self.realWorld:
             x = 1280 - args[2] * 2560
             y = 960 - args[3] * 1920
             z = -args[4] * 1280
