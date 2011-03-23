@@ -27,7 +27,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>
 
-import liblo
+import OSC
 from math import sqrt
 
 HEAD = 'head'
@@ -162,9 +162,9 @@ class Skeleton:
         self.joints.clear()
 
 class OSCeleton:
-    """Starts a liblo.Server instance and processes each event the server receives.
+    """Starts a server instance and processes each event the server receives.
     
-    OSCeleton.server is a liblo.Server instance.
+    OSCeleton.server is a OSC.OSCServer instance.
     
     OSCeleton.users is a dictionary whose keys are user ids and
     its' values are Skeleton objects.
@@ -188,18 +188,19 @@ class OSCeleton:
         
         Creates the server and registers the callbacks.
         """
-        self.server = liblo.Server(port)
-        self.server.add_method("/new_user", 'i', self.new_user_callback)
-        self.server.add_method("/lost_user", 'i', self.lost_user_callback)
-        self.server.add_method("/new_skel", 'i', self.new_skeleton_callback)
-        self.server.add_method("/joint", 'sifff', self.joint_callback)
+        self.server = OSC.OSCServer(('127.0.0.1', port))
+        self.server.addMsgHandler("/new_user", self.new_user_callback)
+        self.server.addMsgHandler("/lost_user", self.lost_user_callback)
+        self.server.addMsgHandler("/new_skel", self.new_skeleton_callback)
+        self.server.addMsgHandler("/joint", self.joint_callback)
+        self.server.addMsgHandler("default", self.do_nothing_callback)
     
-    def new_user_callback(self, path, args, types, src):
+    def new_user_callback(self, path, types, args, src):
         """Create user"""
         print "New user %d" % args[0]
         self._users[args[0]] = Skeleton(args[0])
         
-    def lost_user_callback(self, path, args, types, src):
+    def lost_user_callback(self, path, types, args, src):
         """Remove user"""
         print "User %d has been lost" % args[0]
         try:
@@ -208,12 +209,15 @@ class OSCeleton:
             del self.users[args[0]]
         except KeyError:
             pass
+            
+    def do_nothing_callback(self, path, types, args, src):
+        """Does absolutely nothing"""
         
-    def new_skeleton_callback(self, path, args, types, src):
+    def new_skeleton_callback(self, path, types, args, src):
         """Prints that a new skeleton is being tracked"""
         print "Calibration complete, now tracking User %d" % args[0]
         
-    def joint_callback(self, path, args, types, src):
+    def joint_callback(self, path, types, args, src):
         """Add joint to a users skeleton"""
         #add new user if they haven't been added already
         if args[1] not in self._users:
@@ -250,5 +254,5 @@ class OSCeleton:
         
         Accepts optional timeout argument.
         """
-        self.server.recv(timeout)
+        self.server.handle_request()
 
