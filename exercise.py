@@ -73,13 +73,6 @@ class Target(Point):
         self.middleJoint = ""
         self.hitJoint = ""
         self.calcLen = False
-        
-def cross(p1, p2):
-    """Determines the cross product of two vectors"""
-    x = p1.y * p2.z - p1.z * p2.y
-    y = p1.z * p2.x - p1.x * p2.z
-    z = p1.x * p2.y - p1.y * p2.x
-    return Point(x, y, z)
     
 def getTargets(iniFile):
     """Parses ini file and adds the targets found in the file to users_targets"""
@@ -100,7 +93,7 @@ def getTargets(iniFile):
             t.calcLen = parser.getboolean(section, 'calcLen')
         usersTargets.append(t)
     
-def getRGB(joint, colorRange = 600):
+def getRGB(joint, colorRange = 800):
     """Returns a tuple with r, g and b color values based on joint's Z.
     
     Ugly but does the job, needs to be completely rewritten"""
@@ -254,7 +247,8 @@ def getPlayersOrientation(player):
         tr = player[RIGHT_SHOULDER] - player[TORSO]
         tl.normalize()
         tr.normalize()
-        orientation = cross(tr, tl)
+        orientationArray = np.cross(tr.vals(), tl.vals())
+        orientation = Point(orientationArray[0], orientationArray[1], orientationArray[2]) 
         orientation.normalize()
     else:
         orientation = Point(1, 1, 1)
