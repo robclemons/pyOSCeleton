@@ -236,7 +236,7 @@ class OSCeleton:
             z = -args[4] * 1280
             self._users[args[1]][str(args[0])] = Point(x, y, z)
         else:
-            x, y, z = args[2:0]
+            x, y, z = args[2:]
             self._users[args[1]][str(args[0])] = Point(x, y, z)
         
     def get_users(self):
