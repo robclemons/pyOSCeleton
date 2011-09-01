@@ -131,7 +131,8 @@ class Skeleton:
         """
         self.id = user
         self.joints = {}
-                      
+        self.orient = {}
+
     def __contains__(self, wanted):
         """Test whether Skeleton.joints contains everything passed to it.
         
@@ -160,6 +161,7 @@ class Skeleton:
     def clear(self):
         """Maps to Skeleton.joints"""
         self.joints.clear()
+        self.orient.clear()
 
 class OSCeleton:
     """Starts a server instance and processes each event the server receives.
@@ -193,6 +195,7 @@ class OSCeleton:
         self.server.addMsgHandler("/lost_user", self.lost_user_callback)
         self.server.addMsgHandler("/new_skel", self.new_skeleton_callback)
         self.server.addMsgHandler("/joint", self.joint_callback)
+        self.server.addMsgHandler("/orient", self.orient_callback)
         self.server.addMsgHandler("default", self.do_nothing_callback)
     
     def new_user_callback(self, path, types, args, src):
@@ -222,11 +225,13 @@ class OSCeleton:
         #add new user if they haven't been added already
         if args[1] not in self._users:
             self._users[args[1]] = Skeleton(args[1])
+
         #start a new frame and save the old one in users if we already have joint
         if str(args[0]) in self._users[args[1]].joints:
             if args[1] not in self.users:
                 self.users[args[1]] = Skeleton(args[1])
             self.users[args[1]].joints = self._users[args[1]].copy_joints()
+            self.users[args[1]].orient = self._users[args[1]].orient.copy()
             self._users[args[1]].clear()
             self.frames += 1
         #convert to mm in real world measurements
@@ -238,6 +243,13 @@ class OSCeleton:
         else:
             x, y, z = args[2:]
             self._users[args[1]][str(args[0])] = Point(x, y, z)
+
+    def orient_callback(self, path, types, args, src):
+        """Add join orientation to a users skeleton"""
+        #add new user if they haven't been added already
+        if args[1] not in self._users:
+            self._users[args[1]] = Skeleton(args[1])
+        self._users[args[1]].orient[str(args[0])] = args[2:]
         
     def get_users(self):
         """Return a list of users"""
