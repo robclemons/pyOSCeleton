@@ -11,4 +11,7 @@ while True:
         for each in server.get_new_skeletons():
             for jointName, orient in each.orient.items():
                 print "joint = " + jointName
-                print "orientation = " + str(orient)
+                print "orientation:"
+                print "x = " + str(orient[0])
+                print "y = " + str(orient[1])
+                print "z = " + str(orient[2])

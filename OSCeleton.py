@@ -249,7 +249,10 @@ class OSCeleton:
         #add new user if they haven't been added already
         if args[1] not in self._users:
             self._users[args[1]] = Skeleton(args[1])
-        self._users[args[1]].orient[str(args[0])] = args[2:]
+        x = args[2:5]
+        y = args[5:8]
+        z = args[8:]
+        self._users[args[1]].orient[str(args[0])] = [x, y, z]
         
     def get_users(self):
         """Return a list of users"""
