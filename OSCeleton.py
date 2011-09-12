@@ -348,10 +348,7 @@ class OSCeleton:
         self.users.clear()
         return tmp
         
-    def run(self, timeout = 100):
-        """Wait for and catch event
-        
-        Accepts optional timeout argument.
-        """
+    def run(self):
+        """Wait for and catch event"""
         self.server.handle_request()
 
