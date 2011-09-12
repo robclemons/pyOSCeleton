@@ -65,6 +65,14 @@ class Point(object):
         """Initialize Point object.
         
         Accepts the x, y and z coordinates in that order.
+        
+        Usage:
+        
+            >>> point1 = Point(1, 2, 3)
+            >>> point1.x
+            1
+            >>> point1.z
+            3
         """
         self.x = x
         self.y = y
@@ -76,40 +84,99 @@ class Point(object):
         return s
         
     def __eq__(self, other):
-        """Test whether two Points' x, y and z coordinates are equal"""
+        """Test whether two Points' x, y and z coordinates are equal
+        
+        Usage:
+        
+        >>> point1 = Point(1, 2, 3)
+        >>> point2 = Point(1, 2, 5)
+        >>> point1 == point2
+        False
+        >>> point3 = Point(1, 2, 3)
+        >>> point1 == point3
+        True
+"""
         if self.x == other.x and self.y == other.y and self.z == other.z:
             return True
         else:
             return False
             
     def __add__(self, other):
-        """Add Point objects' coordinates together"""
+        """Add Point objects' coordinates together
+        
+        Usage:
+        
+        >>> point1 = Point(1, 2, 3)
+        >>> point2 = Point(1, 2, 5)
+        >>> point1 + point2
+        (2.000000, 4.000000, 8.000000)
+        """
         x = self.x + other.x
         y = self.y + other.y
         z = self.z + other.z
         return Point(x, y, z)
         
     def __sub__(self, other):
-        """Subtract Point objects' coordinates"""
+        """Subtract Point objects' coordinates
+        
+        Usage:
+        
+        >>> point1 = Point(1, 2, 3)
+        >>> point2 = Point(1, 2, 5)
+        >>> point1 - point2
+        (0.000000, 0.000000, -2.000000)
+        """
         x = self.x - other.x
         y = self.y - other.y
         z = self.z - other.z
         return Point(x, y, z)
     
     def copy(self):
-        """Returns a new Point with the same coordinates"""
+        """Returns a new Point with the same coordinates
+        
+        Usage:
+        
+        >>> point1 = Point(1, 2, 3)
+        >>> point0 = point1.copy()
+        >>> point0
+        (1.000000, 2.000000, 3.000000)
+        """
         return Point(self.x, self.y, self.z)
         
     def vals(self):
-        """Returns a list containg the x, y and z coordinates"""
+        """Returns a list containg the x, y and z coordinates
+        
+        Usage:
+        
+        >>> point1 = Point(1, 2, 3)
+        >>> point1.vals()
+        [1, 2, 3]
+        """
         return [self.x, self.y, self.z]
         
     def magnitude(self):
-        """Calculate vector magnitude of Point"""
+        """Calculate vector magnitude of Point
+        
+        Usage:
+        
+        >>> point1 = Point(1, 2, 3)
+        >>> point1.magnitude()
+        3.7416573867739413
+        """
         return sqrt(self.x ** 2 + self.y ** 2 + self.z ** 2)
             
     def normalize(self):
-        """Normalize Point's x, y and z coordinates in place"""
+        """Normalize Point's x, y and z coordinates in place
+        
+        Usage:
+        
+        >>> point1 = Point(1, 2, 3)
+        >>> point1
+        (1.000000, 2.000000, 3.000000)
+        >>> point1.normalize()
+        >>> point1
+        (0.267261, 0.534522, 0.801784)
+        """
         mag = self.magnitude()
         self.x = self.x / mag
         self.y = self.y / mag
@@ -119,7 +186,10 @@ class Skeleton:
     """Holds a user's joint positions
     
     Skeleton.joints is a dictionary whose keys are joint labels
-    and its' values are the joint's Point.
+    and its values are the joint's Point.
+    
+    Skeleton.orient is a dictionary whose keys are joint labels
+    and its values are the joint's orientation data.
     
     Skeleton.id is the user's number    
     """
@@ -255,11 +325,25 @@ class OSCeleton:
         self._users[args[1]].orient[str(args[0])] = [x, y, z]
         
     def get_users(self):
-        """Return a list of users"""
+        """Return a list of users
+        
+        Usage: 
+        
+        >>> osc.get_users()
+        [1, 2]
+        """
         return self._users.keys()
         
     def get_new_skeletons(self):
-        """Return a list of new skeletons"""
+        """Return a list of new skeletons
+        
+        Usage:
+        
+        >>> for skel in osc.get_new_skeletons():
+        >>>     for jointName, point in skel.joints.items():
+        >>>         print "joint = " + str(jointName)
+        >>>         print "position = " + str(point)
+        """
         tmp = self.users.values()
         self.users.clear()
         return tmp
